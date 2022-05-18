@@ -151,7 +151,7 @@ class Classifier(object):
                                         project_folder,
                                         first_trainable_layer, 
                                         metrics = metrics,
-                                        network = None,
+                                        network = self,
                                         report_callback = callback_q,
                                         callback_sleep = callback_sleep)
 
