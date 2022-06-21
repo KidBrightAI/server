@@ -181,9 +181,12 @@ class Converter(object):
             converter = tf.lite.TFLiteConverter.from_keras_model(model)
             converter.optimizations = [tf.lite.Optimize.DEFAULT]
             converter.representative_dataset = self.edgetpu_dataset_gen
-            converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-            #converter.inference_input_type = tf.uint8
-            #converter.inference_output_type = tf.uint8
+            #converter.target_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+            converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+            # For full integer quantization, though supported types defaults to int8 only, we explicitly declare it for clarity.
+            converter.target_spec.supported_types = [tf.int8]
+            converter.inference_input_type = tf.uint8
+            converter.inference_output_type = tf.uint8
 
         elif target == 'tflite_dynamic':
             converter = tf.lite.TFLiteConverter.from_keras_model(model)
