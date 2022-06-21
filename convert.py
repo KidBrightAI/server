@@ -108,7 +108,7 @@ class Converter(object):
     def convert_edgetpu(self, model_path):
         output_path = os.path.dirname(model_path)
         print(output_path)
-        cmd = "edgetpu_compiler --out_dir {} {}".format(output_path, model_path)
+        cmd = "edgetpu_compiler -m 13 --out_dir {} {}".format(output_path, model_path)
         print(cmd)
         result = run_command(cmd)
         print(result)
