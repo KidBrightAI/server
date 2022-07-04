@@ -23,6 +23,8 @@ import gdown
 
 from keras import backend as K 
 
+BACKEND = "COLAB" #or EDGE 
+
 PROJECT_PATH = "./"
 PROJECT_FILENAME = "project.json"
 TRAIN_FOLDER = "train"
@@ -79,8 +81,10 @@ def sync_project():
     RAW_PROJECT_DATASET = os.path.join(project_path,RAW_DATASET_FOLDER)
     helper.create_not_exist(RAW_PROJECT_DATASET) 
     dataset = data["dataset"]["dataset"]
-
-    needed_filename = [i["id"]+"."+i["ext"] for i in dataset["data"]]
+    if project["projectType"] == "VOICE_CLASSIFICATION":
+        needed_filename = [i["id"]+"_mfcc.jpg" for i in dataset["data"]]
+    else:
+        needed_filename = [i["id"]+"."+i["ext"] for i in dataset["data"]]
     needed_files = helper.sync_files(RAW_PROJECT_DATASET, needed_filename)
     res = "OK" if len(needed_files) == 0 else "SYNC"
     return jsonify({"result" : res, "needed" : needed_files})
@@ -138,10 +142,18 @@ def training_task(data, q):
             #create folder with label
             shutil.rmtree(train_dataset_path, ignore_errors=True)
             shutil.rmtree(valid_dataset_path, ignore_errors=True)
-            labels = helper.move_dataset_file_to_folder(train, raw_dataset_path, train_dataset_path)
+            if project["project"]["project"]["projectType"] == "VOICE_CLASSIFICATION": # training file end with id_mfcc.jpg
+                labels = helper.move_dataset_file_to_folder(train, raw_dataset_path, train_dataset_path, "_mfcc", "jpg")
+            else:
+                labels = helper.move_dataset_file_to_folder(train, raw_dataset_path, train_dataset_path)
             print("train data moved to : " + train_dataset_path)
             q.put({"time":time.time(), "event": "initial", "msg" : "train data moved to : " + train_dataset_path})
-            helper.move_dataset_file_to_folder(valid, raw_dataset_path, valid_dataset_path)
+
+            if project["project"]["project"]["projectType"] == "VOICE_CLASSIFICATION": # test file end with id_mfcc.jpg
+                helper.move_dataset_file_to_folder(valid, raw_dataset_path, valid_dataset_path, "_mfcc", "jpg")
+            else:
+                helper.move_dataset_file_to_folder(valid, raw_dataset_path, valid_dataset_path)
+            
             print("validate data moved to : " + valid_dataset_path)
             q.put({"time":time.time(), "event": "initial", "msg" : "validate data moved to : " + valid_dataset_path})
             print("labels : ")
@@ -200,6 +212,9 @@ def training_task(data, q):
             output_folder_path = os.path.join(PROJECT_PATH, project_id, OUTPUT_FOLDER)
             shutil.rmtree(output_folder_path, ignore_errors=True)
             helper.create_not_exist(output_folder_path)
+
+            # write anchors to files
+            helper.write_file(os.path.join(output_folder_path,"anchors.txt"), ",".join(anchors))
             
             if input_conf["pretrained"] and input_conf["pretrained"].startswith("https://drive.google.com"):
                 q.put({"time":time.time(), "event": "initial", "msg" : "download pretrained model : " + input_conf["pretrained"]})
@@ -223,6 +238,7 @@ def training_task(data, q):
                 metrics = output_conf["save_on"],
                 callback_q = q,
                 callback_sleep = None)
+
             STAGE = 3
             q.put({"time":time.time(), "event": "train_end", "msg" : "Train ended", "matric" : None})            
             # print("finish traing")
@@ -466,6 +482,6 @@ if __name__ == '__main__':
             print("=== start ngrok ===")
             run_ngrok(5000,sys.argv[2])
 
-    socketio.run(app,debug=False)
+    socketio.run(app,debug=True)
     #data = {"project_id" : "project-sss-mRshh0"}
     #training_task(data,report_queue)
