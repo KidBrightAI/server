@@ -18,6 +18,10 @@ def write_file(file,data):
     with open(file, 'wb') as f:
         f.write(data) 
 
+def write_text_file(file,data):
+    with open(file, 'w') as f:
+        f.write(data) 
+
 def read_json_file(file):
     if os.path.exists(file):
         with open(file) as f:

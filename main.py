@@ -276,7 +276,7 @@ def training_task(data, q):
             helper.create_not_exist(output_folder_path)
 
             # write anchors to files
-            helper.write_file(os.path.join(output_folder_path,"anchors.txt"), ",".join(str(el) for el in anchors))
+            helper.write_text_file(os.path.join(output_folder_path,"anchors.txt"), ",".join(str(el) for el in anchors))
             
             if input_conf["pretrained"] and input_conf["pretrained"].startswith("https://drive.google.com"):
                 q.put({"time":time.time(), "event": "initial", "msg" : "download pretrained model : " + input_conf["pretrained"]})
