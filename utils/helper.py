@@ -62,14 +62,14 @@ def parse_json(cmd):
 
 def move_dataset_file_to_folder(dataset, dataset_path, target_path, suffex="", ext=None):
     dirs = []
-    ext = ext or item["ext"]
     for item in dataset:
+        file_ext = ext or item["ext"]
         class_name = item["class"]
         if class_name not in dirs:
             dirs.append(class_name)
             create_not_exist(os.path.join(target_path, class_name))
 
-        filename = item["id"] + suffex + "." + ext
+        filename = item["id"] + suffex + "." + file_ext
         src_file = os.path.join(dataset_path, filename)
         des_file = os.path.join(target_path, class_name, filename)
         shutil.copyfile(src_file, des_file)

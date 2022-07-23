@@ -9,7 +9,7 @@ import requests
 import atexit
 from pathlib import Path
 
-import sys, json, os, time, logging, random, shutil, tempfile, subprocess
+import sys, json, os, time, logging, random, shutil, tempfile, subprocess, re, platform
 import numpy as np
 import cv2
 import utils.helper as helper
@@ -21,11 +21,15 @@ from convert import Converter
 
 import gdown
 
-from keras import backend as K 
+from tensorflow import keras 
+from tensorflow.keras import backend as K 
 
-BACKEND = "COLAB" #or EDGE 
+#from keras import backend as K 
 
-PROJECT_PATH = "./"
+BACKEND = "EDGE" if platform.node() == "raspberrypi" else "COLAB"
+SUDO_PASS = "raspberry"
+print("BACKEND : " + BACKEND)
+PROJECT_PATH = "./" if BACKEND == "COLAB" else "~/projects"
 PROJECT_FILENAME = "project.json"
 TRAIN_FOLDER = "train"
 TEST_FOLDER = "test"
@@ -48,19 +52,65 @@ CORS(app)
 logging.basicConfig(level=logging.WARNING)
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
 
-@app.route('/', methods=["GET"])
-def index():
+@app.route('/wifi', methods=["GET","POST"])
+def on_wifi():
+    if request.method == 'GET':
+        result = subprocess.check_output(f"echo '{SUDO_PASS}' | sudo -S wifi scan", shell=True)
+        network = result.decode('ascii')
+        match = re.findall(r"-[0-9]+\s+(.*?)\s",network)
+        return jsonify({"result":"OK",  "data" : match })
+    if request.method == 'POST':
+        return jsonify({"result":"OK"})
+
+@app.route('/wifi_current', methods=["GET"])
+def on_current_wifi():
+    if request.method == 'GET':
+        result = subprocess.check_output(f"wpa_cli -i wlan0 status", shell=True)
+        network = result.decode('ascii')
+        print(network)
+        results = dict(x.split("=") for x in network.split("\n") if len(x.split("=")) == 2)
+        return jsonify({"result":"OK",  "data" : results })
+
+@app.route("/list_project", methods=["GET"])
+def handle_list_project():
+    res = []
+    for proj_id in os.listdir(PROJECT_PATH):
+        if not proj_id.startswith("project-"):
+            continue
+        project_all = helper.read_json_file(os.path.join(PROJECT_PATH,proj_id,PROJECT_FILENAME))
+        project = project_all["project"]["project"]
+        info = {
+            "name": project["name"], 
+            "description": project["description"], 
+            "id": project["id"],
+            "projectType": project["projectType"],
+            "projectTypeTitle": project["projectTypeTitle"],
+            "lastUpdate": project["lastUpdate"]
+        }
+        res.append(info)
+    return jsonify({"result":"OK", "projects" : res})
+
+@app.route('/save_project', methods=["GET"])
+def on_save():
     return jsonify({"result":"OK"})
 
-@app.route('/upload', methods=["POST"])
-def upload():
-    if request.method == "POST":
-        files = request.files.getlist("dataset")
-        project_id = request.form['project_id']
-        dataset_raw_path = os.path.join(PROJECT_PATH, project_id, RAW_DATASET_FOLDER)
-        for file in files:
-            target_path = os.path.join(dataset_raw_path,file.filename)
-            file.save(target_path)
+@app.route("/load_project", methods=["POST"])
+def handle_load_project():
+    data = request.get_json()
+    res = {}
+    project_id = data["project_id"]
+    project_file = os.path.join(PROJECT_PATH,project_id,PROJECT_FILENAME)
+    if os.path.exists(project_file):
+        project_info = helper.read_json_file(project_file)
+        res = project_info
+    return jsonify({"project_data" : res})
+
+@app.route('/delete_project', methods=["POST"])
+def on_delete_project():
+    return jsonify({"result":"OK"})
+
+@app.route('/run', methods=["POST"])
+def on_run():
     return jsonify({"result":"OK"})
 
 @app.route("/sync_project", methods=["POST"])
@@ -89,6 +139,18 @@ def sync_project():
     res = "OK" if len(needed_files) == 0 else "SYNC"
     return jsonify({"result" : res, "needed" : needed_files})
     # =========================== #
+
+@app.route('/upload', methods=["POST"])
+def upload():
+    if request.method == "POST":
+        files = request.files.getlist("dataset")
+        project_id = request.form['project_id']
+        dataset_raw_path = os.path.join(PROJECT_PATH, project_id, RAW_DATASET_FOLDER)
+        for file in files:
+            target_path = os.path.join(dataset_raw_path,file.filename)
+            file.save(target_path)
+    return jsonify({"result":"OK"})
+
 
 def training_task(data, q):
     global STAGE, current_model
@@ -365,35 +427,6 @@ def handle_inference_model():
     else:
         return jsonify({"result" : "FAIL","reason":"model type not specify"})
 
-@app.route("/list_project", methods=["GET"])
-def handle_list_project():
-    res = []
-    for proj_id in os.listdir(PROJECT_PATH):
-        if not proj_id.startswith("project-"):
-            continue
-        project_all = helper.read_json_file(os.path.join(PROJECT_PATH,proj_id,PROJECT_FILENAME))
-        project = project_all["project"]["project"]
-        info = {
-            "name": project["name"], 
-            "description": project["description"], 
-            "id": project["id"],
-            "projectType": project["projectType"],
-            "projectTypeTitle": project["projectTypeTitle"],
-            "lastUpdate": project["lastUpdate"]
-        }
-        res.append(info)
-    return jsonify({"projects" : res})
-
-@app.route("/load_project", methods=["POST"])
-def handle_load_project():
-    data = request.get_json()
-    res = {}
-    project_id = data["project_id"]
-    project_file = os.path.join(PROJECT_PATH,project_id,PROJECT_FILENAME)
-    if os.path.exists(project_file):
-        project_info = helper.read_json_file(project_file)
-        res = project_info
-    return jsonify({"project_data" : res})
 
 @socketio.on('connect')
 def client_connect():
@@ -481,7 +514,7 @@ if __name__ == '__main__':
         if sys.argv[1] == "ngrok" and sys.argv[2]:
             print("=== start ngrok ===")
             run_ngrok(5000,sys.argv[2])
-
-    socketio.run(app,debug=True)
+    app.run(host="0.0.0.0",debug=True)
+    #socketio.run(app,debug=True,port=8888)
     #data = {"project_id" : "project-sss-mRshh0"}
     #training_task(data,report_queue)
