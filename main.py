@@ -29,7 +29,7 @@ from tensorflow.keras import backend as K
 BACKEND = "EDGE" if platform.node() == "raspberrypi" else "COLAB"
 SUDO_PASS = "raspberry"
 print("BACKEND : " + BACKEND)
-PROJECT_PATH = "./" if BACKEND == "COLAB" else "~/projects"
+PROJECT_PATH = "./" if BACKEND == "COLAB" else "./projects"
 PROJECT_FILENAME = "project.json"
 TRAIN_FOLDER = "train"
 TEST_FOLDER = "test"
@@ -353,9 +353,7 @@ def handle_convert_model():
     project_id = data["project_id"]
     if not project_id:
         return "Fail"
-    if not os.path.exists(project_id):
-        return "Fail"
-    output_path = os.path.join(project_id,"output")
+    output_path = os.path.join(PROJECT_PATH, project_id, "output")
     files = [os.path.join(output_path,f) for f in os.listdir(output_path) if f.endswith(".h5")]
     if len(files) <= 0:
         return "Fail"
@@ -371,7 +369,7 @@ def handle_convert_model():
     converter = Converter("edgetpu", config["arch"], raw_dataset_path)
     converter.convert_model(files[0])
     
-    shutil.make_archive(os.path.join(PROJECT_PATH,project_id,"model"), 'zip', output_model_path)
+    shutil.make_archive(os.path.join(PROJECT_PATH, project_id, "model"), 'zip', output_model_path)
 
     return jsonify({"result" : "OK"})
 
@@ -397,7 +395,7 @@ def handle_inference_model():
     if not tmp_img:
         return "Image null or something"
     
-    target_file_path = os.path.join(project_id,TEMP_FOLDER)
+    target_file_path = os.path.join(PROJECT_PATH, project_id, TEMP_FOLDER)
     helper.create_not_exist(target_file_path) 
     target_file = os.path.join(target_file_path, tmp_img.filename)
     tmp_img.save(target_file)    
