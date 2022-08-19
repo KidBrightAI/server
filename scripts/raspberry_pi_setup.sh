@@ -10,10 +10,6 @@ pip3 install -r requirements_rpi.txt
 tflite_convert --keras_model_file=projects/project-fsdfs-h6fMJm/output/Classifier_best_val_accuracy.h5 --output_file=./projects/project-fsdfs-h6fMJm/output/test.tflite
 #sudo docker run -it --rm -v /home/pi/kbai-server:/home armindocachada/tensorflow2-raspberrypi4:2.3.0-cp35-none-linux_armv7l tflite_convert --keras_model_file=/home/projects/project-fsdfs-h6fMJm/output/Classifier_best_val_accuracy.h5 --output_file=/home/projects/project-fsdfs-h6fMJm/output/test.tflite
 pm2 start python3 main.py
-ช่วงเวลา จัดซื้อกับ ก่อน กันยายน เอกสาร
-
-ปิดโครงการ ตัวอย่าง ส่งมอบ
-Tor อันหน้า 
 https://raw.githubusercontent.com/PINTO0309/Tensorflow-bin/main/previous_versions/download_tensorflow-2.3.0-cp37-none-linux_armv7l.sh
 
 
