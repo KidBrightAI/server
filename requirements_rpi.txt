@@ -1,6 +1,7 @@
 numpy==1.21.6
 imgaug==0.4
 opencv-python~=3.4
+pillow==9.2.0
 sklearn
 matplotlib~=3.3
 tqdm
