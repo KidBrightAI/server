@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, copy_current_request_context, jsonify, send_file
+from flask import Flask, render_template, request, copy_current_request_context, jsonify, send_file, send_static_file
 from flask_socketio import SocketIO, send, emit
 from flask_cors import CORS, cross_origin
 import threading, queue
@@ -9,7 +9,7 @@ import requests
 import atexit
 from pathlib import Path
 
-import sys, json, os, time, logging, random, shutil, tempfile, subprocess, re, platform
+import sys, json, os, time, logging, random, shutil, tempfile, subprocess, re, platform, io
 import numpy as np
 import cv2
 import utils.helper as helper
@@ -104,6 +104,15 @@ def handle_load_project():
         project_info = helper.read_json_file(project_file)
         res = project_info
     return jsonify({"project_data" : res})
+
+@app.route("/download_project", method=["POST"])
+def handle_download_project():
+    data = request.get_json()
+    project_id = data["project_id"]
+    project_zip_file = os.path.join(PROJECT_PATH,project_id+".zip")
+    project_target_dir = os.path.join(PROJECT_PATH,project_id)
+    shutil.make_archive(project_zip_file, 'zip', project_target_dir)
+    return send_static_file(project_zip_file)
 
 @app.route('/delete_project', methods=["POST"])
 def on_delete_project():
