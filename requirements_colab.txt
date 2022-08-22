@@ -9,3 +9,4 @@ Jinja2==2.10.1
 markupsafe==1.1.1
 python-socketio==4.6.0
 python-engineio==3.13.2
+tensorflowjs==3.1.0

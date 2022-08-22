@@ -212,6 +212,7 @@ class Converter(object):
         print("model input size = ")
         print(self._img_size)
         self.model_path = os.path.abspath(model_path)
+        print("model path = ", self.model_path)
 
         if 'k210' in self._converter_type:
             self.convert_tflite(model, model_layers, 'k210')
@@ -219,7 +220,7 @@ class Converter(object):
 
         if 'edgetpu' in self._converter_type:
             self.convert_tflite(model, model_layers, 'edgetpu')
-            self.convert_edgetpu(model_path.split(".")[0] + '.tflite')
+            self.convert_edgetpu(self.model_path.split(".")[0] + '.tflite')
 
         if 'onnx' in self._converter_type:
             import tf2onnx
