@@ -5,7 +5,7 @@ cd kbai-server
 gdown --id 11mujzVaFqa7R1_lB7q0kVPW22Ol51MPg
 pip3 install tensorflow-2.2.0-cp37-cp37m-linux_armv7l.whl
 curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
-
+pip3 install tensorflowjs
 
 # pip3 install https://github.com/bitsy-ai/tensorflow-arm-bin/releases/download/v2.4.0-rc2/tensorflow-2.4.0rc2-cp37-none-linux_armv7l.whl
 # pip3 install https://github.com/bitsy-ai/tensorflow-arm-bin/releases/download/v2.4.0/tensorflow-2.4.0-cp37-none-linux_armv7l.whl

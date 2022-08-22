@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, copy_current_request_context, jsonify, send_file, send_static_file
+from flask import Flask, render_template, request, copy_current_request_context, jsonify, send_file
 from flask_socketio import SocketIO, send, emit
 from flask_cors import CORS, cross_origin
 import threading, queue
@@ -20,6 +20,7 @@ from models.custom_yolo_model import create_yolo, get_dataset_labels
 from convert import Converter
 
 import gdown
+import urllib.request
 
 from tensorflow import keras 
 from tensorflow.keras import backend as K 
@@ -75,7 +76,7 @@ def on_current_wifi():
 def handle_list_project():
     res = []
     for proj_id in os.listdir(PROJECT_PATH):
-        if not proj_id.startswith("project-"):
+        if not proj_id.startswith("project-") or not os.path.isdir(os.path.join(PROJECT_PATH,proj_id)):
             continue
         project_all = helper.read_json_file(os.path.join(PROJECT_PATH,proj_id,PROJECT_FILENAME))
         project = project_all["project"]["project"]
@@ -105,14 +106,29 @@ def handle_load_project():
         res = project_info
     return jsonify({"project_data" : res})
 
-@app.route("/download_project", method=["POST"])
+@app.route("/download_project", methods=["GET"])
 def handle_download_project():
-    data = request.get_json()
-    project_id = data["project_id"]
+    project_id = request.args.get("project_id")
     project_zip_file = os.path.join(PROJECT_PATH,project_id+".zip")
     project_target_dir = os.path.join(PROJECT_PATH,project_id)
     shutil.make_archive(project_zip_file, 'zip', project_target_dir)
-    return send_static_file(project_zip_file)
+    return send_from_directory(PROJECT_PATH,project_id+".zip", as_attachment=True)
+
+@app.route("/download_server_project", methods = ["POST"])
+def handle_download_server_project():
+    data = request.get_json()
+    project_id = data["project_id"]
+    server_url = data["url"]
+    target_file = os.path.join(PROJECT_PATH, project_id + "_model_output.zip")
+    target_dir = os.path.join(PROJECT_PATH, project_id, "output")
+    helper.create_not_exist(target_dir)
+    urllib.request.urlretrieve(f"{server_url}/download_model?project_id={project_id}", filename=target_file)
+    shutil.unpack_archive(target_file, target_dir)
+    return jsonify({"result":"OK"})
+
+@app.route('/projects/<path:path>')
+def send_report(path):
+    return send_from_directory('projects', path)
 
 @app.route('/delete_project', methods=["POST"])
 def on_delete_project():
@@ -141,7 +157,15 @@ def sync_project():
     helper.create_not_exist(RAW_PROJECT_DATASET) 
     dataset = data["dataset"]["dataset"]
     if project["projectType"] == "VOICE_CLASSIFICATION":
-        needed_filename = [i["id"]+"_mfcc.jpg" for i in dataset["data"]]
+        needed_filename = []
+        if BACKEND == "EDGE":
+            needed_filename = []
+            for i in dataset["data"]:
+                needed_filename.append(i["id"]+ "_mfcc.jpg")
+                needed_filename.append(i["id"]+ "." + i["sound_ext"])
+                needed_filename.append(i["id"]+ "." + i["ext"])
+        else:
+            needed_filename = [i["id"]+"_mfcc.jpg" for i in dataset["data"]]
     else:
         needed_filename = [i["id"]+"."+i["ext"] for i in dataset["data"]]
     needed_files = helper.sync_files(RAW_PROJECT_DATASET, needed_filename)
@@ -374,7 +398,11 @@ def handle_convert_model():
     config = helper.parse_json(cmd_code)
     raw_dataset_path = os.path.join(PROJECT_PATH, project_id, RAW_DATASET_FOLDER)
     output_model_path = os.path.join(PROJECT_PATH, project_id, OUTPUT_FOLDER)
-
+    tfjs_model_path = os.path.join(output_model_path,"tfjs")
+    
+    #--- tfjs converter ---#
+    convert_res = subprocess.run(["tensorflowjs_converter --input_format keras "+files[0] + " " + tfjs_model_path], stdout=subprocess.PIPE, shell=True)
+    #--- edge converter ---#
     converter = Converter("edgetpu", config["arch"], raw_dataset_path)
     converter.convert_model(files[0])
     
