@@ -213,9 +213,9 @@ class Converter(object):
         print(self._img_size)
         self.model_path = os.path.abspath(model_path)
         print("model path = ", self.model_path)
-        print("convert tfjs")
-        output_folder = os.path.dirname(self.model_path)
-        subprocess.run("tensorflowjs_converter --input_format=keras " + self.model_path + " " + output_folder, shell=True, check=True)
+        #print("convert tfjs")
+        #output_folder = os.path.dirname(self.model_path)
+        #subprocess.run("tensorflowjs_converter --input_format=keras " + self.model_path + " " + output_folder, shell=True, check=True)
 
         if 'k210' in self._converter_type:
             self.convert_tflite(model, model_layers, 'k210')
