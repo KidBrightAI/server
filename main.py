@@ -402,8 +402,8 @@ def handle_convert_model():
     
     #--- tfjs converter ---#
     convert_res = subprocess.run(["tensorflowjs_converter --input_format keras "+files[0] + " " + tfjs_model_path], stdout=subprocess.PIPE, shell=True)
-    subprocess.run(["sed -i 's/LecunNormal/RandomNormal/g' "+output_model_path+"/model.json"])
-    subprocess.run(["sed -i 's/Functional/Model/g' "+output_model_path+"/model.json"])
+    subprocess.run(["sed -i 's/LecunNormal/RandomNormal/g' "+tfjs_model_path+"/model.json"])
+    subprocess.run(["sed -i 's/Functional/Model/g' "+tfjs_model_path+"/model.json"])
     #--- edge converter ---#
     converter = Converter("edgetpu", config["arch"], raw_dataset_path)
     converter.convert_model(files[0])
