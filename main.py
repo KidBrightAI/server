@@ -30,7 +30,7 @@ from tensorflow.keras import backend as K
 BACKEND = "EDGE" if platform.node() == "raspberrypi" else "COLAB"
 SUDO_PASS = "raspberry"
 print("BACKEND : " + BACKEND)
-PROJECT_PATH = "./" if BACKEND == "COLAB" else "./projects"
+PROJECT_PATH = "./projects" if BACKEND == "COLAB" else "./projects"
 PROJECT_FILENAME = "project.json"
 TRAIN_FOLDER = "train"
 TEST_FOLDER = "test"
