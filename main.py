@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, copy_current_request_context, jsonify, send_file, send_from_directory
+from flask import Flask, render_template, request, copy_current_request_context, jsonify, send_file, send_from_directory, make_response
+from functools import update_wrapper
 from flask_socketio import SocketIO, send, emit
 from flask_cors import CORS, cross_origin
 import threading, queue
@@ -48,7 +49,7 @@ report_task = None
 app = Flask(__name__)
 #Set this argument to``'*'`` to allow all origins, or to ``[]`` to disable CORS handling.
 socketio = SocketIO(app, async_mode='threading', cors_allowed_origins = "*")
-CORS(app, resources={r"/projects/*": {"origins": "*"}})
+CORS(app)
 #CRITICAL, ERROR, WARNING, INFO, DEBUG
 logging.basicConfig(level=logging.WARNING)
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
@@ -126,7 +127,17 @@ def handle_download_server_project():
     shutil.unpack_archive(target_file, target_dir)
     return jsonify({"result":"OK"})
 
+def res_decorator(f):
+    def func(*args, **kwargs):
+        resp = make_response(f(*args, **kwargs))
+        resp.cache_control.no_cache = True
+        # avoid CORS
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
+    return update_wrapper(func, f)
+
 @app.route('/projects/<path:path>')
+@res_decorator
 def send_report(path):
     return send_from_directory('projects', path)
 
