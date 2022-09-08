@@ -49,7 +49,7 @@ report_task = None
 app = Flask(__name__)
 #Set this argument to``'*'`` to allow all origins, or to ``[]`` to disable CORS handling.
 socketio = SocketIO(app, async_mode='threading', cors_allowed_origins = "*")
-#CORS(app)
+CORS(app)
 #CRITICAL, ERROR, WARNING, INFO, DEBUG
 logging.basicConfig(level=logging.WARNING)
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
@@ -127,21 +127,21 @@ def handle_download_server_project():
     shutil.unpack_archive(target_file, target_dir)
     return jsonify({"result":"OK"})
 
-# def res_decorator(f):
-#     def func(*args, **kwargs):
-#         resp = make_response(f(*args, **kwargs))
-#         resp.cache_control.no_cache = True
-#         # avoid CORS
-#         resp.headers['Access-Control-Allow-Origin'] = '*'
-#         return resp
-#     return update_wrapper(func, f)
+def res_decorator(f):
+    def func(*args, **kwargs):
+        resp = make_response(f(*args, **kwargs))
+        resp.cache_control.no_cache = True
+        # avoid CORS
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        return resp
+    return update_wrapper(func, f)
 
-@app.after_request
-def after_request(response):
-    response.headers['Access-Control-Allow-Methods']='*'
-    response.headers['Access-Control-Allow-Origin']='*'
-    response.headers['Vary']='Origin'
-    return response
+# @app.after_request
+# def after_request(response):
+#     response.headers['Access-Control-Allow-Methods']='*'
+#     response.headers['Access-Control-Allow-Origin']='*'
+#     response.headers['Vary']='Origin'
+#     return response
 
 @app.route('/projects/<path:path>')
 def send_report(path):
