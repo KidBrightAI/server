@@ -47,6 +47,7 @@ train_task = None
 report_task = None
 
 app = Flask(__name__)
+app.config['CORS_HEADERS'] = 'Content-Type'
 #Set this argument to``'*'`` to allow all origins, or to ``[]`` to disable CORS handling.
 socketio = SocketIO(app, async_mode='threading', cors_allowed_origins = "*")
 CORS(app)
@@ -136,12 +137,13 @@ def res_decorator(f):
         return resp
     return update_wrapper(func, f)
 
-# @app.after_request
-# def after_request(response):
-#     response.headers['Access-Control-Allow-Methods']='*'
-#     response.headers['Access-Control-Allow-Origin']='*'
-#     response.headers['Vary']='Origin'
-#     return response
+@app.after_request
+def after_request(response):
+    response.headers['Access-Control-Allow-Methods']='*'
+    response.headers['Access-Control-Allow-Origin']='*'
+    response.headers['Vary']='Origin'
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type, Accept, Access-Control-Allow-Headers, X-Requested-With"
+    return response
 
 @app.route('/projects/<path:path>')
 def send_report(path):
