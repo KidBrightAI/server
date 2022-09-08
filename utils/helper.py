@@ -69,6 +69,8 @@ def move_dataset_file_to_folder(dataset, dataset_path, target_path, suffex="", e
     for item in dataset:
         file_ext = ext or item["ext"]
         class_name = item["class"]
+        if not class_name:
+            continue
         if class_name not in dirs:
             dirs.append(class_name)
             create_not_exist(os.path.join(target_path, class_name))
