@@ -49,7 +49,7 @@ report_task = None
 app = Flask(__name__)
 #Set this argument to``'*'`` to allow all origins, or to ``[]`` to disable CORS handling.
 socketio = SocketIO(app, async_mode='threading', cors_allowed_origins = "*")
-CORS(app)
+#CORS(app)
 #CRITICAL, ERROR, WARNING, INFO, DEBUG
 logging.basicConfig(level=logging.WARNING)
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
