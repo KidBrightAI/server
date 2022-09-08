@@ -127,17 +127,23 @@ def handle_download_server_project():
     shutil.unpack_archive(target_file, target_dir)
     return jsonify({"result":"OK"})
 
-def res_decorator(f):
-    def func(*args, **kwargs):
-        resp = make_response(f(*args, **kwargs))
-        resp.cache_control.no_cache = True
-        # avoid CORS
-        resp.headers['Access-Control-Allow-Origin'] = '*'
-        return resp
-    return update_wrapper(func, f)
+# def res_decorator(f):
+#     def func(*args, **kwargs):
+#         resp = make_response(f(*args, **kwargs))
+#         resp.cache_control.no_cache = True
+#         # avoid CORS
+#         resp.headers['Access-Control-Allow-Origin'] = '*'
+#         return resp
+#     return update_wrapper(func, f)
+
+@app.after_request
+def after_request(response):
+    response.headers['Access-Control-Allow-Methods']='*'
+    response.headers['Access-Control-Allow-Origin']='*'
+    response.headers['Vary']='Origin'
+    return response
 
 @app.route('/projects/<path:path>')
-@res_decorator
 def send_report(path):
     return send_from_directory('projects', path)
 
