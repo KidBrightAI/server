@@ -329,7 +329,9 @@ def training_task(data, q):
 
             # write anchors to files
             helper.write_text_file(os.path.join(output_folder_path,"anchors.txt"), ",".join(str(el) for el in anchors))
-            
+            # write label to files
+            helper.write_text_file(os.path.join(output_folder_path,"labels.txt"), ",".join(str(el) for el in current_model._labels))
+
             if input_conf["pretrained"] and input_conf["pretrained"].startswith("https://drive.google.com"):
                 q.put({"time":time.time(), "event": "initial", "msg" : "download pretrained model : " + input_conf["pretrained"]})
                 pretrained_model_file = os.path.join(output_folder_path,"pretrained_model.h5")
