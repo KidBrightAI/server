@@ -11,6 +11,7 @@ import atexit
 from pathlib import Path
 
 import sys, json, os, time, logging, random, shutil, tempfile, subprocess, re, platform, io
+import base64
 import numpy as np
 import cv2
 import utils.helper as helper
@@ -28,7 +29,15 @@ from tensorflow.keras import backend as K
 
 #from keras import backend as K 
 
-BACKEND = "EDGE" if platform.node() == "raspberrypi" else "COLAB"
+UNAME = platform.uname()
+BACKEND = "EDGE"
+if UNAME.system == "Windows":
+    BACKEND = "EDGE"
+if platform.node() == "raspberrypi":
+    BACKEND = "EDGE" 
+if 'google.colab' in sys.modules:
+    BACKEND = "COLAB"
+
 SUDO_PASS = "raspberry"
 print("BACKEND : " + BACKEND)
 PROJECT_PATH = "./projects" if BACKEND == "COLAB" else "./projects"
@@ -54,6 +63,10 @@ CORS(app)
 #CRITICAL, ERROR, WARNING, INFO, DEBUG
 logging.basicConfig(level=logging.WARNING)
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
+
+@app.route('/ping', methods=["GET","POST"])
+def on_ping():
+    return jsonify({"result":"pong"})
 
 @app.route('/wifi', methods=["GET","POST"])
 def on_wifi():
@@ -116,11 +129,16 @@ def handle_download_project():
     shutil.make_archive(project_zip_file, 'zip', project_target_dir)
     return send_from_directory(PROJECT_PATH,project_id+".zip", as_attachment=True)
 
-@app.route("/download_server_project", methods = ["POST"])
+@app.route("/download_server_project", methods = ["GET","POST"])
 def handle_download_server_project():
-    data = request.get_json()
-    project_id = data["project_id"]
-    server_url = data["url"]
+    if request.method == 'GET':
+        project_id = request.args.get("project_id")
+        server_url = request.args.get("url")
+    if request.method == "POST":
+        data = request.get_json()
+        project_id = data["project_id"]
+        server_url = data["url"]
+    
     target_file = os.path.join(PROJECT_PATH, project_id + "_model_output.zip")
     target_dir = os.path.join(PROJECT_PATH, project_id, "output")
     helper.create_not_exist(target_dir)
@@ -155,6 +173,13 @@ def on_delete_project():
 
 @app.route('/run', methods=["POST"])
 def on_run():
+    data = request.get_json()
+    project_id = data["project_id"]
+    code = base64.b64decode(data["code"]).decode('utf-8')
+    target_file = os.path.join(PROJECT_PATH, project_id, "run.py")
+    with open(target_file, "w", encoding = "utf8") as f:
+        f.write(code)
+    subprocess.run(["python", target_file])
     return jsonify({"result":"OK"})
 
 @app.route("/sync_project", methods=["POST"])
