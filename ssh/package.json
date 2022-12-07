@@ -1,0 +1,20 @@
+{
+  "name": "ssh-server",
+  "version": "1.0.0",
+  "description": "SSH Server for Kidbright-AI IDE",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index.js"
+  },
+  "author": "phudphut@gmail.com",
+  "license": "MIT",
+  "dependencies": {
+    "fastify": "^2.15.1",
+    "fastify-ws": "^1.0.3",
+    "node-ssh": "^13.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
