@@ -207,8 +207,9 @@ def sync_project():
     # write project file
     project_filename = os.path.join(project_path,PROJECT_FILENAME)
     with open(project_filename, 'w') as json_file:
-        json_object = json.dumps(data)
-        json_file.write(json_object)
+        #json_object = json.dumps(data)
+        #json_file.write(json_object)
+        json.dump(data, json_file)
     # ========= sync project ======#
     # sync dataset
     RAW_PROJECT_DATASET = os.path.join(project_path,RAW_DATASET_FOLDER)
