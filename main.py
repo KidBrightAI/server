@@ -151,7 +151,7 @@ def handle_download_server_project():
     wget.download(f"{server_url}/projects/{project_id}/output/tfjs/model.json",out=tfjs_model)
     if os.path.exists(tfjs_model):
         model_info = helper.read_json_file(tfjs_model)
-        bin_files = model_info["weightsManifest"]["paths"]
+        bin_files = model_info["weightsManifest"][0]["paths"]
         for file in bin_files:
             target_model_file = os.path.join(target_dir,file)
             wget.download(f"{server_url}/projects/{project_id}/output/tfjs/{file}",out=target_model_file)
@@ -233,7 +233,7 @@ def sync_project():
         tfjs_model = os.path.join(project_path,"model.json")
         if os.path.exists(tfjs_model):
             model_info = helper.read_json_file(tfjs_model)
-            needed_filename += model_info["weightsManifest"]["paths"]
+            needed_filename += model_info["weightsManifest"][0]["paths"]
         needed_model_files = helper.sync_files(project_path, needed_filename)
         return jsonify({"result" : res, "needed" : needed_files, "others" : needed_model_files})
     else:
