@@ -5,6 +5,7 @@ from flask_cors import CORS, cross_origin
 import threading, queue
 import ctypes
 import zipfile
+import wget
 
 import requests
 import atexit
@@ -139,11 +140,23 @@ def handle_download_server_project():
         project_id = data["project_id"]
         server_url = data["url"]
     
-    target_file = os.path.join(PROJECT_PATH, project_id + "_model_output.zip")
-    target_dir = os.path.join(PROJECT_PATH, project_id, "output")
+    #target_file = os.path.join(PROJECT_PATH, project_id + "_model_output.zip")
+    target_dir = os.path.join(PROJECT_PATH, project_id)
+    tfjs_model = os.path.join(target_dir,"model.json")
+    
     helper.create_not_exist(target_dir)
-    urllib.request.urlretrieve(f"{server_url}/download_model?project_id={project_id}", filename=target_file)
-    shutil.unpack_archive(target_file, target_dir)
+    wget.download(f"{server_url}/projects/{project_id}/output/labels.txt",out=os.path.join(target_dir,"labels.txt"))
+    wget.download(f"{server_url}/projects/{project_id}/output/YOLO_best_mAP.h5",out=os.path.join(target_dir,"model.h5"))
+    wget.download(f"{server_url}/projects/{project_id}/output/YOLO_best_mAP_edgetpu.tflite",out=os.path.join(target_dir,"model_edgetpu.tflite"))
+    wget.download(f"{server_url}/projects/{project_id}/output/tfjs/model.json",out=tfjs_model)
+    if os.path.exists(tfjs_model):
+        model_info = helper.read_json_file(tfjs_model)
+        bin_files = model_info["weightsManifest"]["paths"]
+        for file in bin_files:
+            target_model_file = os.path.join(target_dir,file)
+            wget.download(f"{server_url}/projects/{project_id}/output/tfjs/{file}",out=target_model_file)
+    #urllib.request.urlretrieve(f"{server_url}/download_model?project_id={project_id}", filename=target_file)
+    #shutil.unpack_archive(target_file, target_dir)
     return jsonify({"result":"OK"})
 
 def res_decorator(f):
