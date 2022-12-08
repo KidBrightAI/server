@@ -212,9 +212,19 @@ def sync_project():
             needed_filename = [i["id"]+"_mfcc.jpg" for i in dataset["data"]]
     else:
         needed_filename = [i["id"]+"."+i["ext"] for i in dataset["data"]]
+    
     needed_files = helper.sync_files(RAW_PROJECT_DATASET, needed_filename)
     res = "OK" if len(needed_files) == 0 else "SYNC"
-    return jsonify({"result" : res, "needed" : needed_files})
+    if BACKEND == "EDGE"
+        needed_filename = ["model.h5","labels.txt","model.json","model_edgetpu.tflite"]
+        tfjs_model = os.path.join(project_path,"model.json")
+        if os.path.exists(tfjs_model):
+            model_info = helper.read_json_file(tfjs_model)
+            needed_filename += model_info["weightsManifest"]["paths"]
+        needed_model_files = helper.sync_files(project_path, needed_filename)
+        return jsonify({"result" : res, "needed" : needed_files, "others" : needed_model_files})
+    else:
+        return jsonify({"result" : res, "needed" : needed_files})
     # =========================== #
 
 @app.route('/upload', methods=["POST"])
@@ -226,6 +236,13 @@ def upload():
         for file in files:
             target_path = os.path.join(dataset_raw_path,file.filename)
             file.save(target_path)
+        if BACKEND == "EDGE":
+            # sync model file if needed
+            other_file = request.files.getlist("other")
+            for file in other_file:
+                target_path = os.path.join(PROJECT_PATH,file.filename)
+                file.save(target_path)
+                
     return jsonify({"result":"OK"})
 
 

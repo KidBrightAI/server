@@ -6,10 +6,15 @@ const sshConfig = {
   username: "pi",
   password: "raspberry",
 };
-
-module.exports = async (ws, req) => {
+let shellStream = null;
+const executeCommand = (comm) => {
+  if (shellStream) {
+    shellStream.write(comm);
+  }
+};
+const onConnect = async (ws, req) => {
   await ssh.connect(sshConfig);
-  const shellStream = await ssh.requestShell();
+  shellStream = await ssh.requestShell();
   ws.on("message", (msg) => {
     const data = JSON.parse(msg);
     switch (data.method) {
@@ -20,17 +25,20 @@ module.exports = async (ws, req) => {
   });
   // listener
   shellStream.on("data", (data) => {
-    const d = JSON.stringify({
-      jsonrpc: "2.0",
-      data: data.toString(),
-    });
-    ws.send(d);
+    // const d = JSON.stringify({
+    //   jsonrpc: "2.0",
+    //   data: data.toString(),
+    // });
+    ws.send(data.toString());
   });
   shellStream.stderr.on("data", (data) => {
-    const d = JSON.stringify({
-      jsonrpc: "1.0",
-      data: data.toString(),
-    });
-    ws.send(d);
+    // const d = JSON.stringify({
+    //   jsonrpc: "1.0",
+    //   data: data.toString(),
+    // });
+    ws.send(d.toString());
   });
 };
+
+module.exports.connection = onConnect;
+module.exports.command = executeCommand;
