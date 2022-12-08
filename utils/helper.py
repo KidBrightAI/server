@@ -27,7 +27,7 @@ def read_json_file(file):
         with open(file) as f:
             return json.load(f)
 
-def sync_files(path,needed_files):
+def sync_files(path,needed_files, remove_exist=True):
     all_files = os.listdir(path)
     removed = 0
     requested = []
@@ -36,9 +36,10 @@ def sync_files(path,needed_files):
         if not os.path.isfile(target_file):
             continue
         # remove not needed
-        if item not in needed_files:
-            os.remove(target_file)
-            removed += 1
+        if remove_exist:
+            if item not in needed_files:
+                os.remove(target_file)
+                removed += 1
     for item in needed_files:
         if item not in all_files:
             requested.append(item)

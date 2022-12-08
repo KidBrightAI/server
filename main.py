@@ -236,7 +236,7 @@ def sync_project():
         if os.path.exists(tfjs_model):
             model_info = helper.read_json_file(tfjs_model)
             needed_filename += model_info["weightsManifest"][0]["paths"]
-        needed_model_files = helper.sync_files(project_path, needed_filename)
+        needed_model_files = helper.sync_files(project_path, needed_filename, remove_exist=False)
         return jsonify({"result" : res, "needed" : needed_files, "others" : needed_model_files})
     else:
         return jsonify({"result" : res, "needed" : needed_files})
