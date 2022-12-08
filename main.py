@@ -205,9 +205,10 @@ def sync_project():
     project_path = os.path.join(PROJECT_PATH, project['id'])
     helper.create_not_exist(project_path)
     # write project file
-    project_file = os.path.join(project_path,PROJECT_FILENAME)
-    with open(project_file, 'w') as json_file:
-        json.dump(data, json_file)
+    project_filename = os.path.join(project_path,PROJECT_FILENAME)
+    with open(project_filename, 'w') as json_file:
+        json_object = json.dumps(data)
+        json_file.write(json_object)
     # ========= sync project ======#
     # sync dataset
     RAW_PROJECT_DATASET = os.path.join(project_path,RAW_DATASET_FOLDER)
