@@ -232,6 +232,7 @@ def upload():
     if request.method == "POST":
         files = request.files.getlist("dataset")
         project_id = request.form['project_id']
+        project_path = os.path.join(PROJECT_PATH, project_id)
         dataset_raw_path = os.path.join(PROJECT_PATH, project_id, RAW_DATASET_FOLDER)
         for file in files:
             target_path = os.path.join(dataset_raw_path,file.filename)
@@ -240,7 +241,7 @@ def upload():
             # sync model file if needed
             other_file = request.files.getlist("other")
             for file in other_file:
-                target_path = os.path.join(PROJECT_PATH,file.filename)
+                target_path = os.path.join(project_path,file.filename)
                 file.save(target_path)
 
     return jsonify({"result":"OK"})
