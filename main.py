@@ -135,10 +135,12 @@ def handle_download_server_project():
     if request.method == 'GET':
         project_id = request.args.get("project_id")
         server_url = request.args.get("url")
+        model_file = request.args.get("model_file")
     if request.method == "POST":
         data = request.get_json()
         project_id = data["project_id"]
         server_url = data["url"]
+        model_file = data["model_file"]
     
     #target_file = os.path.join(PROJECT_PATH, project_id + "_model_output.zip")
     target_dir = os.path.join(PROJECT_PATH, project_id)
@@ -146,8 +148,8 @@ def handle_download_server_project():
     
     helper.create_not_exist(target_dir)
     wget.download(f"{server_url}/projects/{project_id}/output/labels.txt",out=os.path.join(target_dir,"labels.txt"))
-    wget.download(f"{server_url}/projects/{project_id}/output/YOLO_best_mAP.h5",out=os.path.join(target_dir,"model.h5"))
-    wget.download(f"{server_url}/projects/{project_id}/output/YOLO_best_mAP_edgetpu.tflite",out=os.path.join(target_dir,"model_edgetpu.tflite"))
+    wget.download(f"{server_url}/projects/{project_id}/output/{model_file}.h5",out=os.path.join(target_dir,"model.h5"))
+    wget.download(f"{server_url}/projects/{project_id}/output/{model_file}_edgetpu.tflite",out=os.path.join(target_dir,"model_edgetpu.tflite"))
     wget.download(f"{server_url}/projects/{project_id}/output/tfjs/model.json",out=tfjs_model)
     if os.path.exists(tfjs_model):
         model_info = helper.read_json_file(tfjs_model)
