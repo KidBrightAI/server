@@ -215,7 +215,7 @@ def sync_project():
     
     needed_files = helper.sync_files(RAW_PROJECT_DATASET, needed_filename)
     res = "OK" if len(needed_files) == 0 else "SYNC"
-    if BACKEND == "EDGE"
+    if BACKEND == "EDGE":
         needed_filename = ["model.h5","labels.txt","model.json","model_edgetpu.tflite"]
         tfjs_model = os.path.join(project_path,"model.json")
         if os.path.exists(tfjs_model):
@@ -242,7 +242,7 @@ def upload():
             for file in other_file:
                 target_path = os.path.join(PROJECT_PATH,file.filename)
                 file.save(target_path)
-                
+
     return jsonify({"result":"OK"})
 
 
