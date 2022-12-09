@@ -1,5 +1,6 @@
 const fastify = require("fastify");
 const path = require("path");
+const fs = require("fs");
 const cors = require("@fastify/cors");
 const app = fastify();
 app.register(require("fastify-ws"));
@@ -19,7 +20,8 @@ app.post("/run", (req, res) => {
   const code = Buffer.from(req.body.code, "base64").toString("utf8");
   const projectPath = path.join("../projects", projectId);
   const targetFile = path.join(projectPath, "run.py");
-  WsController.command("python3 " + path.resolve(targetFile));
+  fs.writeFileSync(targetFile, code);
+  WsController.command("python3 " + path.resolve(targetFile) + "\r\n");
   res.send({ success: true });
 });
 app.listen(8888, "0.0.0.0");
