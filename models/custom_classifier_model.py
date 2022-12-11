@@ -10,11 +10,11 @@ from utils.classifier.batch_gen import create_datagen
 from utils.fit import train
 import tensorflow.keras.layers
 from tensorflow.keras.models import Model, load_model
-from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout
+from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout, Input
 from tensorflow.keras.applications.mobilenet import preprocess_input
 
 
-def mobilenet_normalize(self, image):
+def mobilenet_normalize(image):
     image = image / 255.
     image = image - 0.5
     image = image * 2.

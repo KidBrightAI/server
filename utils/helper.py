@@ -45,10 +45,13 @@ def sync_files(path,needed_files, remove_exist=True):
             requested.append(item)
     return requested
 
-def check_and_remove_corrupted_image(path):
+def check_and_remove_corrupted_image(path, ext = ["jpg", "png"]):
     all_files = os.listdir(path)
     corrupted_file = []
     for item in all_files:
+        file_name_ext = os.path.splitext(item)
+        if file_name_ext[1] not in ext:
+            continue
         target_file = os.path.join(path,item)
         img = cv2.imread(target_file)
         if (type(img) is not np.ndarray): 

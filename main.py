@@ -280,7 +280,7 @@ def training_task(data, q):
         config = helper.parse_json(cmd_code)
         q.put({"time":time.time(), "event": "initial", "msg" : "target project id : "+project_id})
         # 2 ========== prepare dataset ========= #
-        train_type = config["model"]
+        train_type =  config["model"] if "model" in config else None
         raw_dataset_path = os.path.join(PROJECT_PATH, project_id, RAW_DATASET_FOLDER)
         dataset = project["dataset"]["dataset"]["data"]
         
@@ -311,12 +311,10 @@ def training_task(data, q):
         shutil.rmtree(train_dataset_path, ignore_errors=True)
         shutil.rmtree(valid_dataset_path, ignore_errors=True)
         
-        if train_type == "mobilenet":
+        if train_type == "mobilenet" or train_type == None:
             q.put({"time":time.time(), "event": "initial", "msg" : "training type : classification(mobilenet)"})
             print("step 1 prepare dataset")
             #create folder with label
-            shutil.rmtree(train_dataset_path, ignore_errors=True)
-            shutil.rmtree(valid_dataset_path, ignore_errors=True)
             if project["project"]["project"]["projectType"] == "VOICE_CLASSIFICATION": # training file end with id_mfcc.jpg
                 labels = helper.move_dataset_file_to_folder(train, raw_dataset_path, train_dataset_path, "_mfcc", "jpg")
             else:
