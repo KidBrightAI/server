@@ -23,12 +23,12 @@ def run_command(cmd, cwd=None):
             line = p.stdout.readline()
             if not line:
                 break
-            print(line)    
+            print(line)
         exit_code = p.poll()
     return exit_code
 
 class Converter(object):
-    def __init__(self, converter_type, backend=None, dataset_path=None):
+    def __init__(self, converter_type, normalize=None, dataset_path=None):
         if 'tflite' in converter_type:
             print('Tflite Converter ready')
 
@@ -65,14 +65,14 @@ class Converter(object):
                 print(result)       
                 
         self._converter_type = converter_type
-        self._backend = backend
+        self._normalize = normalize
         self._dataset_path=dataset_path
 
     def edgetpu_dataset_gen(self):
         num_imgs = 300
         image_files_list = []
         from models.feature import create_feature_extractor
-        backend = create_feature_extractor(self._backend, [self._img_size[0], self._img_size[1]])
+        #backend = create_feature_extractor(self._backend, [self._img_size[0], self._img_size[1]])
         image_search = lambda ext : glob.glob(self._dataset_path + ext, recursive=True)
         for ext in ['/**/*.jpg', '/**/*.jpeg', '/**/*.png']: image_files_list.extend(image_search(ext))
 
@@ -80,7 +80,7 @@ class Converter(object):
             image = cv2.imread(filename)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             image = cv2.resize(image, (self._img_size[1], self._img_size[0])) #img_size = (240,320) from model input
-            data = np.array(backend.normalize(image), dtype=np.float32)
+            data = np.array(self._normalize(image), dtype=np.float32)
             data = np.expand_dims(data, 0)
             yield [data]
 
@@ -88,7 +88,7 @@ class Converter(object):
         num_imgs = 300
         image_files_list = []
         from models.feature import create_feature_extractor
-        backend = create_feature_extractor(self._backend, [self._img_size[0], self._img_size[1]])
+        #backend = create_feature_extractor(self._backend, [self._img_size[0], self._img_size[1]])
         image_search = lambda ext : glob.glob(self._dataset_path + ext, recursive=True)
         for ext in ['/**/*.jpg', '/**/*.jpeg', '/**/*.png']: image_files_list.extend(image_search(ext))
         temp_folder = os.path.join(os.path.dirname(__file__),'tmp')
@@ -97,7 +97,7 @@ class Converter(object):
             image = cv2.imread(filename)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
             image = cv2.resize(image, (self._img_size[0], self._img_size[1]))
-            data = np.array(backend.normalize(image), dtype=np.float32)
+            data = np.array(self._normalize(image), dtype=np.float32)
             data = np.expand_dims(data, 0)
             bin_filename = os.path.basename(filename).split('.')[0]+'.bin'
             with open(os.path.join(temp_folder, bin_filename), "wb") as f: 

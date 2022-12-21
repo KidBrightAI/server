@@ -14,7 +14,7 @@ from tensorflow.keras.layers import Dense, GlobalAveragePooling2D, Dropout, Inpu
 from tensorflow.keras.applications.mobilenet import preprocess_input
 
 
-def mobilenet_normalize(image):
+def normalize(image):
     image = image / 255.
     image = image - 0.5
     image = image * 2.
@@ -54,7 +54,7 @@ def create_classifier(cmds):
         raise "MobileNet must sit next to input layer"
     #4. parse layer
     input_node = None
-    normalize = mobilenet_normalize
+    cur_normalize = normalize
     x = None
     input_conf = json.loads(cmds[0])
     input_size = (input_conf["input_height"], input_conf["input_width"])
@@ -69,7 +69,7 @@ def create_classifier(cmds):
                 layer.trainable = False
         input_node = base_model.feature_extractor.inputs[0]
         x = base_model.feature_extractor.outputs[0]
-        normalize = base_model.normalize
+        cur_normalize = base_model.normalize
         cmds = cmds[2:]
     else:
         input_node = Input(shape=(input_conf["input_height"], input_conf["input_width"], 3))
@@ -85,7 +85,7 @@ def create_classifier(cmds):
     
     #6. build classifier
     model = Model(inputs = input_node, outputs = x, name = 'classifier')
-    network = Classifier(model, input_size, normalize)
+    network = Classifier(model, input_size, cur_normalize)
     return network, input_conf, output_conf
 
 class Classifier(object):

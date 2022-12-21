@@ -18,7 +18,7 @@ import cv2
 import utils.helper as helper
 sys.path.append(".")
 
-from models.custom_classifier_model import create_classifier
+from models.custom_classifier_model import create_classifier, normalize
 from models.custom_yolo_model import create_yolo, get_dataset_labels
 from convert import Converter
 
@@ -485,7 +485,7 @@ def handle_convert_model():
     subprocess.run(["sed -i 's/LecunNormal/RandomNormal/g' "+tfjs_model_path+"/model.json"], shell=True)
     subprocess.run(["sed -i 's/Functional/Model/g' "+tfjs_model_path+"/model.json"], shell=True)
     #--- edge converter ---#
-    converter = Converter("edgetpu", config["arch"], raw_dataset_path)
+    converter = Converter("edgetpu", normalize, raw_dataset_path)
     converter.convert_model(files[0])
     
     shutil.make_archive(os.path.join(PROJECT_PATH, project_id, "model"), 'zip', output_model_path)
