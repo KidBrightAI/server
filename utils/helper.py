@@ -45,7 +45,7 @@ def sync_files(path,needed_files, remove_exist=True):
             requested.append(item)
     return requested
 
-def check_and_remove_corrupted_image(path, ext = ["jpg", "png"]):
+def check_and_remove_corrupted_image(path, ext = [".jpg", ".png"]):
     all_files = os.listdir(path)
     corrupted_file = []
     for item in all_files:
