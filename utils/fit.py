@@ -42,7 +42,7 @@ def train(model,
     # train_date = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     # path = os.path.join(project_folder, train_date)
     path = project_folder
-    basename = network.__class__.__name__ + "_best_"+ metrics
+    basename = network.__class__.__name__ # + "_best_"+ metrics TODO: check this
     print('Current training session folder is {}'.format(path))
     os.makedirs(path, exist_ok=True)
     save_weights_name = os.path.join(path, basename + '.h5')
