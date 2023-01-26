@@ -14,7 +14,7 @@ def run_tuna(port,token):
     command = PYTHON_DEFAULT+" ./pagekite.py --clean"+frontend+service_on
     args = shlex.split(command)
     p = subprocess.Popen(args)
-    print('Initial TUNNEL for ['+tokens[0]+']: OK')
+    print('Initial TUNNEL =I====> [ https://'+tokens[0]+'.kb-proxy.meca.in.th ] <====I=')
   else:
     print('Invalid token')
 
