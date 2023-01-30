@@ -103,7 +103,7 @@ def train(model,
                                      tensorboard=tensorboard_callback,
                                      report_queue=report_callback)
 
-        callbacks = [tensorboard_callback, map_evaluator_cb, warm_up_lr]
+        callbacks = [map_evaluator_cb, warm_up_lr]
     else:
         early_stop = EarlyStopping(monitor=metrics, 
                        min_delta=0.001, 
@@ -119,7 +119,7 @@ def train(model,
                                     mode='auto', 
                                     period=1)
         
-        callbacks= [early_stop, checkpoint, warm_up_lr, tensorboard_callback] 
+        callbacks= [early_stop, checkpoint, warm_up_lr] 
     
     if report_callback != None:
         save_on_end = False if metrics == 'mAP' else True
@@ -135,9 +135,9 @@ def train(model,
                         validation_steps = len(valid_batch_gen),
                         callbacks        = callbacks,                        
                         verbose          = 1,
-                        workers          = 4,
+                        workers          = 1,
                         max_queue_size   = 10,
-                        use_multiprocessing = True)
+                        use_multiprocessing = False)
     except KeyboardInterrupt:
         print("Saving model and copying logs")
         model.save(save_weights_name_ctrlc, overwrite=True, include_optimizer=False)
