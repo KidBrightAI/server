@@ -90,6 +90,20 @@ def on_current_wifi():
         results = dict(x.split("=") for x in network.split("\n") if len(x.split("=")) == 2)
         return jsonify({"result":"OK",  "data" : results })
 
+@app.route('/backend', methods=["GET"])
+def on_backend():
+    if request.method == 'GET':
+        with open("/proc/device-tree/model", "r") as f:
+            model = f.read().strip()
+        if "Jetson Nano" in model:
+            return jsonify({"result":"OK",  "data" : "JETSON" })
+        elif "Raspberry Pi" in model:
+            return jsonify({"result":"OK",  "data" : "RPI" })
+        elif "Nano" in model:
+            return jsonify({"result":"OK",  "data" : "NANO" })
+        else:
+            return jsonify({"result":"OK",  "data" : "NONE" })
+
 @app.route("/list_project", methods=["GET"])
 def handle_list_project():
     res = []
@@ -466,6 +480,7 @@ def handle_convert_model():
     data = request.get_json()
     res = {}
     project_id = data["project_id"]
+    project_backend = data["backend"]
     if not project_id:
         return "Fail"
     output_path = os.path.join(PROJECT_PATH, project_id, "output")
@@ -487,9 +502,17 @@ def handle_convert_model():
     subprocess.run(["sed -i 's/LecunNormal/RandomNormal/g' "+tfjs_model_path+"/model.json"], shell=True)
     subprocess.run(["sed -i 's/Functional/Model/g' "+tfjs_model_path+"/model.json"], shell=True)
     #--- edge converter ---#
-    converter = Converter("edgetpu", normalize, raw_dataset_path)
-    converter.convert_model(files[0])
-    
+    if project_backend == "RPI" or project_backend == "NANO":
+        converter = Converter("edgetpu", normalize, raw_dataset_path)
+        converter.convert_model(files[0])
+    elif not project_backend or project_backend == "JETSON" :
+        converter = Converter("tflite_dynamic", normalize, raw_dataset_path)
+        converter.convert_model(files[0])
+        src_name = os.path.basename(files[0]).split(".")
+        src_path = os.path.dirname(files[0])
+        src_tflite = os.path.join(src_path,src_name[0] + ".tflite")
+        des_tflite = os.path.join(src_path,src_name[0] + "_edgetpu.tflite")
+        shutil.copyfile(src_tflite, des_tflite)
     shutil.make_archive(os.path.join(PROJECT_PATH, project_id, "model"), 'zip', output_model_path)
 
     return jsonify({"result" : "OK"})
