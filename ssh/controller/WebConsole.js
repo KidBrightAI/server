@@ -1,11 +1,14 @@
 const { NodeSSH } = require("node-ssh");
+const fs = require("fs");
+
 const ssh = new NodeSSH();
 
-const sshConfig = {
+let sshConfig = {
   host: "localhost",
   username: "pi",
-  password: "raspberry",
+  password: "",
 };
+
 let shellStream = null;
 const executeCommand = (comm) => {
   if (shellStream) {
@@ -13,6 +16,18 @@ const executeCommand = (comm) => {
   }
 };
 const onConnect = async (ws, req) => {
+  try {
+    const model = fs.readFileSync("/proc/device-tree/model", "utf8").trim();
+    if (model.includes("Jetson Nano")) {
+      sshConfig.password = "pi";
+    } else if (model.includes("Raspberry Pi") || model.includes("Nano")) {
+      sshConfig.password = "raspberry";
+    } else {
+      sshConfig.password = "raspberry";
+    }
+  } catch (err) {
+    console.error(`Error while reading /proc/device-tree/model: ${err}`);
+  }
   await ssh.connect(sshConfig);
   shellStream = await ssh.requestShell();
   ws.on("message", (msg) => {
