@@ -25,6 +25,8 @@ from convert import Converter
 import gdown
 import urllib.request
 
+import tuna
+
 from tensorflow import keras 
 from tensorflow.keras import backend as K 
 
@@ -654,6 +656,9 @@ if __name__ == '__main__':
         if sys.argv[1] == "ngrok" and sys.argv[2]:
             print("=== start ngrok ===")
             run_ngrok(5000,sys.argv[2])
+        elif sys.argv[1] == "tuna" and sys.argv[2]:
+            print("=== start tuna ===")
+            tuna.run_tuna(5000,sys.argv[2])
     app.run(host="0.0.0.0",debug=True)
     #socketio.run(app,debug=True,port=8888)
     #data = {"project_id" : "project-sss-mRshh0"}
