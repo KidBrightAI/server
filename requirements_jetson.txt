@@ -2,7 +2,7 @@ numpy==1.19.5
 sklearn
 pillow
 #imgaug==0.4
-matplotlib~=3.3
+matplotlib
 tqdm
 pascal_voc_writer
 flask==1.1.4

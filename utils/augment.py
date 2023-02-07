@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 np.random.seed(1337)
-import imgaug as ia
-from imgaug import augmenters as iaa
-from imgaug.augmentables.segmaps import SegmentationMapsOnImage
-from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
+try:
+    import imgaug as ia
+    from imgaug import augmenters as iaa
+    from imgaug.augmentables.segmaps import SegmentationMapsOnImage
+    from imgaug.augmentables.bbs import BoundingBox, BoundingBoxesOnImage
+except ImportError:
+    print("No imgaug install !!!")
 import cv2
 import os
 import glob
@@ -23,6 +26,11 @@ class ImgAugment(object):
         self._h = h
         print("create image augment width , height")
         print(w,h)
+        try:
+            import imgaug as ia
+            self.augment = True
+        except ImportError:
+            self.augment = False
 
     def imread(self, img_file, boxes, labels):
         """
@@ -48,7 +56,7 @@ class ImgAugment(object):
         labels_ = np.copy(labels)
   
         # 2. resize and augment image     
-        image, boxes_, labels_ = process_image_detection(image, boxes_, labels_, self._w, self._h, self._jitter) 
+        image, boxes_, labels_ = process_image_detection(image, boxes_, labels_, self._w, self._h, (self._jitter and self.augment)) 
 
         return image, boxes_, labels_
 
@@ -84,7 +92,10 @@ def process_image_detection(image, boxes, labels, desired_w, desired_h, augment)
 
         if (desired_w and desired_h):
             # Rescale image and bounding boxes
-            image = ia.imresize_single_image(image, (desired_w, desired_h))
+            if augment:
+                image = ia.imresize_single_image(image, (desired_w, desired_h))
+            else:
+                image = cv2.resize(image, (desired_w, desired_h))
             bbs = bbs.on(image)
 
         if augment:
