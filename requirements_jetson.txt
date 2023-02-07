@@ -1,0 +1,16 @@
+numpy==1.19.5
+sklearn
+pillow
+#imgaug==0.4
+matplotlib~=3.3
+tqdm
+pascal_voc_writer
+flask==1.1.4
+flask-socketio==4.3.1
+flask_cors==3.0.10
+gdown
+Jinja2==2.10.1
+markupsafe==1.1.1
+python-socketio==4.6.0
+python-engineio==3.13.2
+wget 
