@@ -3,7 +3,7 @@ import sys
 
 PYTHON_DEFAULT = 'python'+str(sys.version_info[0])
 SETTING = {
-  'DOMAIN': 'wot.mecacloud.top'
+  'DOMAIN': 'tuna.meca.in.th'
 }
 
 def run_tuna(port,token):
@@ -14,7 +14,7 @@ def run_tuna(port,token):
     command = PYTHON_DEFAULT+" ./pagekite.py --clean"+frontend+service_on
     args = shlex.split(command)
     p = subprocess.Popen(args)
-    print('Initial TUNNEL =I====> [ https://'+tokens[0]+'.kb-proxy.meca.in.th ] <====I=')
+    print('Initial TUNNEL ((====> [ https://'+tokens[0]+'.tuna-proxy.meca.in.th ] <====))')
   else:
     print('Invalid token')
 
