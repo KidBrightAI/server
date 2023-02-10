@@ -163,15 +163,29 @@ def handle_download_server_project():
     tfjs_model = os.path.join(target_dir,"model.json")
     
     helper.create_not_exist(target_dir)
-    wget.download(f"{server_url}/projects/{project_id}/output/labels.txt",out=os.path.join(target_dir,"labels.txt"))
-    wget.download(f"{server_url}/projects/{project_id}/output/{model_file}.h5",out=os.path.join(target_dir,"model.h5"))
+    # no need for label file
+    # if os.path.exists(os.path.join(target_dir,"labels.txt")):
+    #     os.remove(os.path.join(target_dir,"labels.txt"))
+    # wget.download(f"{server_url}/projects/{project_id}/output/labels.txt",out=os.path.join(target_dir,"labels.txt"))
+    
+    # no need for h5 file
+    # wget.download(f"{server_url}/projects/{project_id}/output/{model_file}.h5",out=os.path.join(target_dir,"model.h5"))
+    
+    if os.path.exists(os.path.join(target_dir,"model_edgetpu.tflite")):
+        os.remove(os.path.join(target_dir,"model_edgetpu.tflite"))
     wget.download(f"{server_url}/projects/{project_id}/output/{model_file}_edgetpu.tflite",out=os.path.join(target_dir,"model_edgetpu.tflite"))
+    
+    if os.path.exists(tfjs_model):
+        os.remove(tfjs_model)
     wget.download(f"{server_url}/projects/{project_id}/output/tfjs/model.json",out=tfjs_model)
+
     if os.path.exists(tfjs_model):
         model_info = helper.read_json_file(tfjs_model)
         bin_files = model_info["weightsManifest"][0]["paths"]
         for file in bin_files:
             target_model_file = os.path.join(target_dir,file)
+            if os.path.exists(target_model_file):
+                os.remove(target_model_file)
             wget.download(f"{server_url}/projects/{project_id}/output/tfjs/{file}",out=target_model_file)
     #urllib.request.urlretrieve(f"{server_url}/download_model?project_id={project_id}", filename=target_file)
     #shutil.unpack_archive(target_file, target_dir)
