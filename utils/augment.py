@@ -94,7 +94,7 @@ def process_image_detection(image, boxes, labels, desired_w, desired_h, augment)
             # Rescale image and bounding boxes
             if augment:
                 image = ia.imresize_single_image(image, (desired_w, desired_h))
-            bbs = bbs.on(image)
+                bbs = bbs.on(image)
 
         if augment:
             aug_pipe = _create_augment_pipeline()
