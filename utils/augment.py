@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 import numpy as np
 np.random.seed(1337)
-import imgaug as ia
 try:
     import imgaug as ia
     from imgaug import augmenters as iaa
