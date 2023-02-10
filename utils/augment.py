@@ -28,9 +28,9 @@ class ImgAugment(object):
         print(w,h)
         try:
             import imgaug as ia
-            self.augment = True
+            self.ia = True
         except ImportError:
-            self.augment = False
+            self.ia = False
 
     def imread(self, img_file, boxes, labels):
         """
@@ -56,7 +56,7 @@ class ImgAugment(object):
         labels_ = np.copy(labels)
   
         # 2. resize and augment image     
-        image, boxes_, labels_ = process_image_detection(image, boxes_, labels_, self._w, self._h, (self._jitter and self.augment)) 
+        image, boxes_, labels_ = process_image_detection(image, boxes_, labels_, self._w, self._h, (self._jitter and self.ia)) 
 
         return image, boxes_, labels_
 
@@ -94,8 +94,6 @@ def process_image_detection(image, boxes, labels, desired_w, desired_h, augment)
             # Rescale image and bounding boxes
             if augment:
                 image = ia.imresize_single_image(image, (desired_w, desired_h))
-            else:
-                image = cv2.resize(image, (desired_w, desired_h))
             bbs = bbs.on(image)
 
         if augment:
