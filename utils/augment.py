@@ -24,13 +24,11 @@ class ImgAugment(object):
         self._jitter = jitter
         self._w = w
         self._h = h
-        print("create image augment width , height")
-        print(w,h)
         try:
             import imgaug as ia
-            self.augment = True
+            self.ia = True
         except ImportError:
-            self.augment = False
+            self.ia = False
 
     def imread(self, img_file, boxes, labels):
         """
@@ -51,12 +49,11 @@ class ImgAugment(object):
             print("This image has an annotation file, but cannot be open. Check the integrity of your dataset.", img_file)
             raise
         
-
         boxes_ = np.copy(boxes)
         labels_ = np.copy(labels)
   
         # 2. resize and augment image     
-        image, boxes_, labels_ = process_image_detection(image, boxes_, labels_, self._w, self._h, (self._jitter and self.augment)) 
+        image, boxes_, labels_ = process_image_detection(image, boxes_, labels_, self._w, self._h, self._jitter) 
 
         return image, boxes_, labels_
 
@@ -92,10 +89,7 @@ def process_image_detection(image, boxes, labels, desired_w, desired_h, augment)
 
         if (desired_w and desired_h):
             # Rescale image and bounding boxes
-            if augment:
-                image = ia.imresize_single_image(image, (desired_w, desired_h))
-            else:
-                image = cv2.resize(image, (desired_w, desired_h))
+            image = ia.imresize_single_image(image, (desired_w, desired_h))
             bbs = bbs.on(image)
 
         if augment:
@@ -171,7 +165,7 @@ def _create_augment_pipeline():
                            ])),
                            sometimes(iaa.Add((-10, 10), per_channel=0.5)),  
                            sometimes(iaa.Multiply((0.5, 1.5), per_channel=0.5)), 
-                           sometimes(iaa.ContrastNormalization((0.5, 2.0), per_channel=0.5)) 
+                           sometimes(iaa.LinearContrast((0.5, 2.0), per_channel=0.5)) 
         ],
         random_order=True
     )
@@ -182,7 +176,7 @@ def _create_augment_pipeline():
 def visualize_detection_dataset(img_folder, ann_folder, num_imgs = None, img_size=None, augment=None):
     import matplotlib.pyplot as plt
     import matplotlib
-    from .yolo.annotation import PascalVocXmlParser
+    from axelerate.networks.yolo.backend.utils.annotation import PascalVocXmlParser
     try:
         matplotlib.use('TkAgg')
     except:
@@ -213,6 +207,55 @@ def visualize_detection_dataset(img_folder, ann_folder, num_imgs = None, img_siz
         plt.pause(1)
         plt.close()
 
+def visualize_segmentation_dataset(images_path, segs_path, num_imgs = None, img_size=None, augment=False, n_classes=255):
+    import matplotlib.pyplot as plt
+    import matplotlib
+    from axelerate.networks.segnet.data_utils.data_loader import get_pairs_from_paths, DATA_LOADER_SEED, class_colors, DataLoaderError
+
+    try:
+        matplotlib.use('TkAgg')
+    except:
+        pass
+
+    def _get_colored_segmentation_image(img, seg, colors, n_classes, img_size, do_augment=False):
+        """ Return a colored segmented image """
+
+        img, seg = process_image_segmentation(img, seg, img_size, img_size, img_size, img_size, do_augment)
+        seg_img = np.zeros_like(seg)
+
+        for c in range(n_classes):
+            seg_img[:, :, 0] += ((seg[:, :, 0] == c) *
+                                (colors[c][0])).astype('uint8')
+            seg_img[:, :, 1] += ((seg[:, :, 0] == c) *
+                                (colors[c][1])).astype('uint8')
+            seg_img[:, :, 2] += ((seg[:, :, 0] == c) *
+                                (colors[c][2])).astype('uint8')
+
+        return img, seg_img
+
+    try:
+        # Get image-segmentation pairs
+        img_seg_pairs = get_pairs_from_paths(images_path, segs_path, ignore_non_matching=True)
+        # Get the colors for the classes
+        colors = class_colors
+
+        print("Please press any key to display the next image")
+        for im_fn, seg_fn in img_seg_pairs[:num_imgs]:
+            img = cv2.imread(im_fn)[...,::-1]
+            seg = cv2.imread(seg_fn)
+            print("Found the following classes in the segmentation image:", np.unique(seg))
+            img, seg_img = _get_colored_segmentation_image(img, seg, colors, n_classes, img_size, do_augment=augment)
+            fig = plt.figure(figsize=(14,7))
+            ax1 = fig.add_subplot(1,2,1)
+            ax1.imshow(img)
+            ax3 = fig.add_subplot(1,2,2)
+            ax3.imshow(seg_img)
+            plt.show(block=False)
+            plt.pause(1)
+            plt.close()
+    except DataLoaderError as e:
+        print("Found error during data loading\n{0}".format(str(e)))
+        return False
 
 def visualize_classification_dataset(img_folder, num_imgs = None, img_size=None, augment=None):
     import matplotlib.pyplot as plt
