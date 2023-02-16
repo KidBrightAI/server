@@ -520,7 +520,7 @@ def handle_convert_model():
     if project_backend == "RPI" or project_backend == "NANO":
         converter = Converter("edgetpu", normalize, raw_dataset_path)
         converter.convert_model(files[0])
-    elif not project_backend or project_backend == "JETSON" :
+    elif project_backend == "JETSON" :
         converter = Converter("tflite_dynamic", normalize, raw_dataset_path)
         converter.convert_model(files[0])
         src_name = os.path.basename(files[0]).split(".")
@@ -528,6 +528,9 @@ def handle_convert_model():
         src_tflite = os.path.join(src_path,src_name[0] + ".tflite")
         des_tflite = os.path.join(src_path,src_name[0] + "_edgetpu.tflite")
         shutil.copyfile(src_tflite, des_tflite)
+    elif not project_backend :
+        converter = Converter("k210", normalize, raw_dataset_path)
+        converter.convert_model(files[0])
     shutil.make_archive(os.path.join(PROJECT_PATH, project_id, "model"), 'zip', output_model_path)
 
     return jsonify({"result" : "OK"})
