@@ -492,6 +492,7 @@ def terminate_training():
 def handle_convert_model():
     print("convert model")
     data = request.get_json()
+    print("555= "data)
     res = {}
     project_id = data["project_id"]
     project_backend = data["backend"]
