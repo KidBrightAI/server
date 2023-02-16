@@ -98,8 +98,11 @@ class Converter(object):
         #backend = create_feature_extractor(self._backend, [self._img_size[0], self._img_size[1]])
         image_search = lambda ext : glob.glob(self._dataset_path + ext, recursive=True)
         for ext in ['/**/*.jpg', '/**/*.jpeg', '/**/*.png']: image_files_list.extend(image_search(ext))
-        temp_folder = os.path.join(os.path.dirname(__file__),'tmp')
-        os.mkdir(temp_folder)
+        temp_folder = os.path.join(os.path.dirname(__file__),'tmpx')
+        try:
+            os.mkdir(temp_folder)
+        except:
+            pass
         for filename in image_files_list[:num_imgs]:
             image = cv2.imread(filename)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
