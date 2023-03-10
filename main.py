@@ -494,7 +494,9 @@ def handle_convert_model():
     data = request.get_json()
     res = {}
     project_id = data["project_id"]
-    project_backend = data["backend"]
+    project_backend = None
+    if "backend" in data:
+        project_backend = data["backend"]
     if not project_id:
         return "Fail"
     output_path = os.path.join(PROJECT_PATH, project_id, "output")
