@@ -41,7 +41,6 @@ if platform.node() == "raspberrypi":
 if 'google.colab' in sys.modules:
     BACKEND = "COLAB"
 
-SUDO_PASS = "raspberry"
 print("BACKEND : " + BACKEND)
 PROJECT_PATH = "./projects" if BACKEND == "COLAB" else "./projects"
 PROJECT_FILENAME = "project.json"
@@ -74,10 +73,19 @@ def on_ping():
 @app.route('/wifi', methods=["GET","POST"])
 def on_wifi():
     if request.method == 'GET':
-        result = subprocess.check_output(f"echo '{SUDO_PASS}' | sudo -S wifi scan", shell=True)
-        network = result.decode('ascii')
-        match = re.findall(r"-[0-9]+\s+(.*?)\s",network)
-        return jsonify({"result":"OK",  "data" : match })
+        cmd = "nmcli -t -f ssid,bssid,signal device wifi list"
+        output = subprocess.check_output(cmd, shell=True).decode('utf-8').strip()
+        networks = []
+        for line in output.split('\n'):
+            ssid, bssid, signal = line.split(':')
+            signal_strength = int(signal.strip())
+            network = {
+                'ssid': ssid.strip(),
+                'bssid': bssid.strip(),
+                'signal': signal_strength
+            }
+            networks.append(network)
+        return jsonify({"result":"OK",  "data" : networks })
     if request.method == 'POST':
         return jsonify({"result":"OK"})
 
@@ -85,9 +93,9 @@ def on_wifi():
 def on_current_wifi():
     if request.method == 'GET':
         result = subprocess.check_output(f"nmcli -t -f active,ssid,signal device wifi list | grep -i '^yes' | cut -d':' -f2-", shell=True)
-        if not output:
+        if not result:
             return None
-        ssid, signal = output.split(':')
+        ssid, signal = result.split(':')
         signal_strength = int(signal.strip())
         return jsonify({"result":"OK",  "data" : ssid })
 
