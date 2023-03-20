@@ -84,7 +84,7 @@ def on_wifi():
                 'mode': parts[2],
                 'chan': parts[3],
                 'rate': parts[4],
-                'signal': parts[5]
+                'signal': int(parts[6])
             }
             networks.append(network)
         return jsonify({"result":"OK",  "data" : networks })
