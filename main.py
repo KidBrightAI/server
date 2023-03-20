@@ -73,15 +73,18 @@ def on_ping():
 @app.route('/wifi', methods=["GET","POST"])
 def on_wifi():
     if request.method == 'GET':
-        output = subprocess.check_output("nmcli -t -f ssid,bssid,signal device wifi list", shell=True).decode('utf-8').strip()
+        output = subprocess.check_output("nmcli device wifi list", shell=True).decode('utf-8').strip()
+        # Parse the output into a list of dictionaries
         networks = []
-        for line in output.split('\n'):
-            ssid, bssid, signal = line.split(':')
-            signal_strength = int(signal.strip())
+        for line in output.split('\n')[1:]:
+            parts = line.split()
             network = {
-                'ssid': ssid.strip(),
-                'bssid': bssid.strip(),
-                'signal': signal_strength
+                'inuse': parts[0], 
+                'ssid': parts[1],
+                'mode': parts[2],
+                'chan': parts[3],
+                'rate': parts[4],
+                'signal': parts[5]
             }
             networks.append(network)
         return jsonify({"result":"OK",  "data" : networks })
@@ -110,7 +113,8 @@ def on_current_wifi():
             return jsonify({"result":"FAILED",  "reason" : "Not Connected" })
         ssid, signal = result.split(':')
         signal_strength = int(signal.strip())
-        return jsonify({"result":"OK",  "data" : ssid })
+
+        return jsonify({"result":"OK",  "data" : { "ssid" : ssid, "signal" : signal_strength } })
 
 @app.route('/backend', methods=["GET"])
 def on_backend():
