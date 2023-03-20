@@ -73,8 +73,7 @@ def on_ping():
 @app.route('/wifi', methods=["GET","POST"])
 def on_wifi():
     if request.method == 'GET':
-        cmd = "nmcli -t -f ssid,bssid,signal device wifi list"
-        output = subprocess.check_output(cmd, shell=True).decode('utf-8').strip()
+        output = subprocess.check_output("nmcli -t -f ssid,bssid,signal device wifi list", shell=True).decode('utf-8').strip()
         networks = []
         for line in output.split('\n'):
             ssid, bssid, signal = line.split(':')
@@ -92,9 +91,9 @@ def on_wifi():
 @app.route('/wifi_current', methods=["GET"])
 def on_current_wifi():
     if request.method == 'GET':
-        result = subprocess.check_output(f"nmcli -t -f active,ssid,signal device wifi list | grep -i '^yes' | cut -d':' -f2-", shell=True)
+        result = subprocess.check_output(f"nmcli -t -f active,ssid,signal device wifi list | grep -i '^yes' | cut -d':' -f2-", shell=True).decode('utf-8')
         if not result:
-            return None
+            return jsonify({"result":"FAILED",  "reason" : "Not Connected" })
         ssid, signal = result.split(':')
         signal_strength = int(signal.strip())
         return jsonify({"result":"OK",  "data" : ssid })
