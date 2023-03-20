@@ -84,11 +84,12 @@ def on_wifi():
 @app.route('/wifi_current', methods=["GET"])
 def on_current_wifi():
     if request.method == 'GET':
-        result = subprocess.check_output(f"wpa_cli -i wlan0 status", shell=True)
-        network = result.decode('ascii')
-        print(network)
-        results = dict(x.split("=") for x in network.split("\n") if len(x.split("=")) == 2)
-        return jsonify({"result":"OK",  "data" : results })
+        result = subprocess.check_output(f"nmcli -t -f active,ssid,signal device wifi list | grep -i '^yes' | cut -d':' -f2-", shell=True)
+        if not output:
+            return None
+        ssid, signal = output.split(':')
+        signal_strength = int(signal.strip())
+        return jsonify({"result":"OK",  "data" : ssid })
 
 @app.route('/backend', methods=["GET"])
 def on_backend():
