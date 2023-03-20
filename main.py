@@ -85,9 +85,23 @@ def on_wifi():
             }
             networks.append(network)
         return jsonify({"result":"OK",  "data" : networks })
-    if request.method == 'POST':
-        return jsonify({"result":"OK"})
 
+    if request.method == 'POST':
+        data = request.get_json()
+        ssid = data["ssid"]
+        password = data["password"]
+        try:
+            subprocess.check_output(f"nmcli connection show '{ssid}'", shell=True)
+            return jsonify({"result":"FAILED",  "reason" : f"Wi-Fi network '{ssid}' is already configured."})
+        except subprocess.CalledProcessError:
+            # Wi-Fi network is not yet configured, create a new connection
+            try:
+                subprocess.check_output(f"nmcli device wifi connect '{ssid}' password '{password}'", shell=True)
+                return jsonify({"result":"OK"})
+            except subprocess.CalledProcessError as e:
+                print(f"Failed to connect to Wi-Fi network '{ssid}'. Error: {e}")
+                return jsonify({"result":"FAILED",  "reason" : f"Error, cannot connect to {ssid}"})
+        
 @app.route('/wifi_current', methods=["GET"])
 def on_current_wifi():
     if request.method == 'GET':
