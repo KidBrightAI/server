@@ -7,7 +7,7 @@ import warnings
 
 from utils.yolo.map_evaluation import MapEvaluation
 from utils.callbacks import WarmUpCosineDecayScheduler, ReportCallback
-from tensorflow.keras.optimizers import Adam, SGD
+from tensorflow.keras.optimizers.legacy import Adam, SGD
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 from datetime import datetime
 

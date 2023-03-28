@@ -6,5 +6,6 @@ python-engineio==3.13.2
 flask-socketio==4.3.1
 flask_cors==3.0.10
 tensorflowjs==3.1.0
+pandas-profiling==2.13.0
 markupsafe==2.0.0
 keras_preprocessing
