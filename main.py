@@ -5,8 +5,6 @@ from flask_cors import CORS, cross_origin
 import threading, queue
 import ctypes
 import zipfile
-import wget
-
 import requests
 import atexit
 from pathlib import Path
@@ -174,6 +172,9 @@ def handle_download_project():
 
 @app.route("/download_server_project", methods = ["GET","POST"])
 def handle_download_server_project():
+    
+    import wget
+
     if request.method == 'GET':
         project_id = request.args.get("project_id")
         server_url = request.args.get("url")
