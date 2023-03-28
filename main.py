@@ -36,7 +36,7 @@ if UNAME.system == "Windows":
     BACKEND = "EDGE"
 if platform.node() == "raspberrypi":
     BACKEND = "EDGE" 
-if 'google.colab' in sys.modules:
+if 'COLAB_GPU' in os.environ:
     BACKEND = "COLAB"
 
 print("BACKEND : " + BACKEND)
