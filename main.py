@@ -32,6 +32,7 @@ from tensorflow.keras import backend as K
 
 UNAME = platform.uname()
 BACKEND = "EDGE"
+DEVICE = ""
 if UNAME.system == "Windows":
     BACKEND = "EDGE"
 if platform.node() == "raspberrypi":
@@ -39,7 +40,13 @@ if platform.node() == "raspberrypi":
 if 'COLAB_GPU' in os.environ:
     BACKEND = "COLAB"
 
+with open("/proc/device-tree/model", "r") as f:
+    model = f.read().strip()
+    if "Jetson Nano" in model:
+        DEVICE = "JETSON"
+
 print("BACKEND : " + BACKEND)
+print("DEVICE : " + DEVICE)
 PROJECT_PATH = "./projects" if BACKEND == "COLAB" else "./projects"
 PROJECT_FILENAME = "project.json"
 TRAIN_FOLDER = "train"
@@ -414,7 +421,7 @@ def training_task(data, q):
                 input_conf["epochs"],
                 output_folder_path,
                 batch_size = input_conf["batch_size"],
-                augumentation = True,
+                augumentation = False if BACKEND == "EDGE" else True,
                 learning_rate = input_conf["learning_rate"], 
                 train_times = input_conf["train_times"],
                 valid_times = input_conf["valid_times"],
