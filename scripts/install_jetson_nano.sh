@@ -1,5 +1,5 @@
 # install tflite runtime
-sudo apt-get install cmake curl
+sudo apt-get install -y cmake curl
 wget -O tensorflow.zip https://github.com/tensorflow/tensorflow/archive/v2.4.1.zip
 unzip tensorflow.zip
 mv tensorflow-2.4.1 tensorflow

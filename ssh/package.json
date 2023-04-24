@@ -13,7 +13,8 @@
     "@fastify/cors": "^8.2.0",
     "fastify": "^2.15.1",
     "fastify-ws": "^1.0.3",
-    "node-ssh": "^13.0.0"
+    "node-ssh": "^13.0.0",
+    "node-wifi": "^2.0.16"
   },
   "devDependencies": {
     "nodemon": "^2.0.20"
