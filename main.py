@@ -31,19 +31,26 @@ from tensorflow.keras import backend as K
 #from keras import backend as K 
 
 UNAME = platform.uname()
-BACKEND = "EDGE"
+BACKEND = ""
 DEVICE = ""
 if UNAME.system == "Windows":
     BACKEND = "EDGE"
-if platform.node() == "raspberrypi":
-    BACKEND = "EDGE" 
-if 'COLAB_GPU' in os.environ:
+    DEVICE = "WINDOWS"
+elif 'COLAB_GPU' in os.environ:
     BACKEND = "COLAB"
-
-with open("/proc/device-tree/model", "r") as f:
-    model = f.read().strip()
-    if "Jetson Nano" in model:
-        DEVICE = "JETSON"
+    DEVICE = "COLAB"
+else:
+    with open("/proc/device-tree/model", "r") as f:
+        model = f.read().strip()
+        if "Jetson Nano" in model:
+            DEVICE = "JETSON"
+            BACKEND = "EDGE"
+        elif "Raspberry Pi" in model:
+            DEVICE = "RPI"
+            BACKEND = "EDGE"
+        elif "Nano" in model:
+            DEVICE = "NANO"
+            BACKEND = "EDGE"
 
 print("BACKEND : " + BACKEND)
 print("DEVICE : " + DEVICE)
@@ -421,7 +428,7 @@ def training_task(data, q):
                 input_conf["epochs"],
                 output_folder_path,
                 batch_size = input_conf["batch_size"],
-                augumentation = False if BACKEND == "EDGE" else True,
+                augumentation = False if DEVICE == "JETSON" else True,
                 learning_rate = input_conf["learning_rate"], 
                 train_times = input_conf["train_times"],
                 valid_times = input_conf["valid_times"],
