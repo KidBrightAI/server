@@ -10,6 +10,12 @@ cd ..
 rm tensorflow.zip
 pip3 install /home/pi/server/tensorflow/tensorflow/lite/tools/pip_package/gen/tflite_pip/python3/dist/tflite_runtime-2.4.1-cp36-cp36m-linux_aarch64.whl
 
+# clean disk 
+sudo apt autoremove -y
+sudo apt clean
+sudo apt remove thunderbird libreoffice-* -y
+sudo rm -rf /usr/local/cuda/samples /usr/src/cudnn_samples_* /usr/src/tensorrt/data /usr/src/tensorrt/samples /usr/share/visionworks* ~/VisionWorks-SFM*Samples /opt/nvidia/deepstream/deepstream*/samples
+
 # install dep
 pip3 install -r requirements_jetson.txt
 
