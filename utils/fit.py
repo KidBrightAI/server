@@ -12,13 +12,6 @@ try:
 except ImportError: 
     from tensorflow.keras.optimizers import Adam, SGD
 
-try:
-    from pycoral.adapters import classify
-    from pycoral.adapters import common
-    from pycoral.utils.edgetpu import make_interpreter
-except ImportError:
-    import tflite_runtime.interpreter as tflite
-
 from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau, ModelCheckpoint
 from datetime import datetime
 

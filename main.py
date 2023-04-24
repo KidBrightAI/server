@@ -428,7 +428,7 @@ def training_task(data, q):
                 input_conf["epochs"],
                 output_folder_path,
                 batch_size = input_conf["batch_size"],
-                augumentation = False if DEVICE == "JETSON" else True,
+                augumentation = False if BACKEND == "EDGE" else True,
                 learning_rate = input_conf["learning_rate"], 
                 train_times = input_conf["train_times"],
                 valid_times = input_conf["valid_times"],
