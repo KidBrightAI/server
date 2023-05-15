@@ -92,7 +92,7 @@ def process_image_detection(image, boxes, labels, desired_w, desired_h, augment)
             try:
                 image = ia.imresize_single_image(image, (desired_w, desired_h))
             except:
-                image = cv2.resize(image, (desired_w, desired_h))
+                image = cv2.resize(image, (desired_h, desired_w))
             bbs = bbs.on(image)
 
         if augment:
@@ -120,7 +120,7 @@ def process_image_classification(image, desired_w, desired_h, augment):
             try:
                 image = ia.imresize_single_image(image, (desired_w, desired_h))
             except:
-                image = cv2.resize(image, (desired_w, desired_h))
+                image = cv2.resize(image, (desired_h, desired_w))
             # image = ia.imresize_single_image(image, (desired_w, desired_h))
 
         if augment:
