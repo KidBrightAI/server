@@ -648,7 +648,7 @@ def client_connect():
                     break
                 else:
                     emit("training_progress",report)
-            except Queue.Empty:
+            except queue.Queue.Empty:
                 continue
             except:
                 print("Unknow Error")

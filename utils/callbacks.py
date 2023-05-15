@@ -27,6 +27,14 @@ class ReportCallback(keras.callbacks.Callback):
             self.sleep.sleep(0)
         
     def on_epoch_end(self, epoch, logs=None):
+        if "loss" in logs:
+            logs["loss"] = float(logs["loss"])
+        if "acc" in logs:
+            logs["acc"] = float(logs["acc"])
+        if "val_loss" in logs:
+            logs["val_loss"] = float(logs["val_loss"])
+        if "val_acc" in logs:
+            logs["val_acc"] = float(logs["val_acc"])
         if self.save_on_epoch_end:
             self.q.put({"time":time.time(), "event": "epoch_end", "msg" : "End epoch", "epoch" : epoch, "matric" : logs})
             if self.sleep:
@@ -61,6 +69,10 @@ class ReportCallback(keras.callbacks.Callback):
             self.sleep.sleep(0)
 
     def on_train_batch_end(self, batch, logs=None):
+        if "loss" in logs:
+            logs["loss"] = float(logs["loss"])
+        if "acc" in logs:
+            logs["acc"] = float(logs["acc"])
         res = {"time":time.time(), "event": "train_batch_end", "msg" : "Train batch ended", "batch" : batch, "matric" : logs}
         if self.params and 'steps' in self.params:
             res["steps"] = self.params["steps"]
