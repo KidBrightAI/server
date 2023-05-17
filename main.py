@@ -184,6 +184,26 @@ def handle_download_project():
     shutil.make_archive(project_zip_file, 'zip', project_target_dir)
     return send_from_directory(PROJECT_PATH,project_id+".zip", as_attachment=True)
 
+@app.route("/download_local_project", methods = ["GET","POST"])
+def handle_download_local_project():
+    if request.method == 'GET':
+        project_id = request.args.get("project_id")
+    if request.method == "POST":
+        data = request.get_json()
+        project_id = data["project_id"]
+    target_dir = os.path.join(PROJECT_PATH, project_id)
+    output_path = os.path.join(target_dir, "output")
+    files = [os.path.join(output_path,f) for f in os.listdir(output_path) if f.endswith("_edgetpu.tflite")]
+    if len(files) <= 0:
+        return "Fail"
+    target_file = os.path.join(target_dir,"model_edgetpu.tflite")
+    if os.path.exists(target_file):
+        os.remove(target_file)
+
+    shutil.copyfile(files[0], target_file)
+
+    return jsonify({"result":"OK"})
+
 @app.route("/download_server_project", methods = ["GET","POST"])
 def handle_download_server_project():
     
