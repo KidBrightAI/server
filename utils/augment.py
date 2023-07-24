@@ -89,7 +89,10 @@ def process_image_detection(image, boxes, labels, desired_w, desired_h, augment)
 
         if (desired_w and desired_h):
             # Rescale image and bounding boxes
-            image = ia.imresize_single_image(image, (desired_w, desired_h))
+            try:
+                image = ia.imresize_single_image(image, (desired_w, desired_h))
+            except:
+                image = cv2.resize(image, (desired_h, desired_w))
             bbs = bbs.on(image)
 
         if augment:
@@ -114,7 +117,11 @@ def process_image_classification(image, desired_w, desired_h, augment):
 
         if (desired_w and desired_h):
             # Rescale image
-            image = ia.imresize_single_image(image, (desired_w, desired_h))
+            try:
+                image = ia.imresize_single_image(image, (desired_w, desired_h))
+            except:
+                image = cv2.resize(image, (desired_h, desired_w))
+            # image = ia.imresize_single_image(image, (desired_w, desired_h))
 
         if augment:
             aug_pipe = _create_augment_pipeline()

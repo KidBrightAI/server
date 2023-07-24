@@ -5,8 +5,6 @@ from flask_cors import CORS, cross_origin
 import threading, queue
 import ctypes
 import zipfile
-import wget
-
 import requests
 import atexit
 from pathlib import Path
@@ -33,16 +31,29 @@ from tensorflow.keras import backend as K
 #from keras import backend as K 
 
 UNAME = platform.uname()
-BACKEND = "EDGE"
+BACKEND = ""
+DEVICE = ""
 if UNAME.system == "Windows":
     BACKEND = "EDGE"
-if platform.node() == "raspberrypi":
-    BACKEND = "EDGE" 
-if 'google.colab' in sys.modules:
+    DEVICE = "WINDOWS"
+elif 'COLAB_GPU' in os.environ:
     BACKEND = "COLAB"
+    DEVICE = "COLAB"
+else:
+    with open("/proc/device-tree/model", "r") as f:
+        model = f.read().strip()
+        if "Jetson Nano" in model:
+            DEVICE = "JETSON"
+            BACKEND = "EDGE"
+        elif "Raspberry Pi" in model:
+            DEVICE = "RPI"
+            BACKEND = "EDGE"
+        elif "Nano" in model:
+            DEVICE = "NANO"
+            BACKEND = "EDGE"
 
-SUDO_PASS = "raspberry"
 print("BACKEND : " + BACKEND)
+print("DEVICE : " + DEVICE)
 PROJECT_PATH = "./projects" if BACKEND == "COLAB" else "./projects"
 PROJECT_FILENAME = "project.json"
 TRAIN_FOLDER = "train"
@@ -74,21 +85,48 @@ def on_ping():
 @app.route('/wifi', methods=["GET","POST"])
 def on_wifi():
     if request.method == 'GET':
-        result = subprocess.check_output(f"echo '{SUDO_PASS}' | sudo -S wifi scan", shell=True)
-        network = result.decode('ascii')
-        match = re.findall(r"-[0-9]+\s+(.*?)\s",network)
-        return jsonify({"result":"OK",  "data" : match })
-    if request.method == 'POST':
-        return jsonify({"result":"OK"})
+        output = subprocess.check_output("nmcli device wifi list", shell=True).decode('utf-8').strip()
+        # Parse the output into a list of dictionaries
+        networks = []
+        for line in output.split('\n')[1:]:
+            parts = line.split()
+            network = {
+                'inuse': parts[0], 
+                'ssid': parts[1],
+                'mode': parts[2],
+                'chan': parts[3],
+                'rate': parts[4],
+                'signal': int(parts[6])
+            }
+            networks.append(network)
+        return jsonify({"result":"OK",  "data" : networks })
 
+    if request.method == 'POST':
+        data = request.get_json()
+        ssid = data["ssid"]
+        password = data["password"]
+        try:
+            subprocess.check_output(f"nmcli connection show '{ssid}'", shell=True)
+            return jsonify({"result":"FAILED",  "reason" : f"Wi-Fi network '{ssid}' is already configured."})
+        except subprocess.CalledProcessError:
+            # Wi-Fi network is not yet configured, create a new connection
+            try:
+                subprocess.check_output(f"nmcli device wifi connect '{ssid}' password '{password}'", shell=True)
+                return jsonify({"result":"OK"})
+            except subprocess.CalledProcessError as e:
+                print(f"Failed to connect to Wi-Fi network '{ssid}'. Error: {e}")
+                return jsonify({"result":"FAILED",  "reason" : f"Error, cannot connect to {ssid}"})
+        
 @app.route('/wifi_current', methods=["GET"])
 def on_current_wifi():
     if request.method == 'GET':
-        result = subprocess.check_output(f"wpa_cli -i wlan0 status", shell=True)
-        network = result.decode('ascii')
-        print(network)
-        results = dict(x.split("=") for x in network.split("\n") if len(x.split("=")) == 2)
-        return jsonify({"result":"OK",  "data" : results })
+        result = subprocess.check_output(f"nmcli -t -f active,ssid,signal device wifi list | grep -i '^yes' | cut -d':' -f2-", shell=True).decode('utf-8')
+        if not result:
+            return jsonify({"result":"FAILED",  "reason" : "Not Connected" })
+        ssid, signal = result.split(':')
+        signal_strength = int(signal.strip())
+
+        return jsonify({"result":"OK",  "data" : { "ssid" : ssid, "signal" : signal_strength } })
 
 @app.route('/backend', methods=["GET"])
 def on_backend():
@@ -146,8 +184,31 @@ def handle_download_project():
     shutil.make_archive(project_zip_file, 'zip', project_target_dir)
     return send_from_directory(PROJECT_PATH,project_id+".zip", as_attachment=True)
 
+@app.route("/download_local_project", methods = ["GET","POST"])
+def handle_download_local_project():
+    if request.method == 'GET':
+        project_id = request.args.get("project_id")
+    if request.method == "POST":
+        data = request.get_json()
+        project_id = data["project_id"]
+    target_dir = os.path.join(PROJECT_PATH, project_id)
+    output_path = os.path.join(target_dir, "output")
+    files = [os.path.join(output_path,f) for f in os.listdir(output_path) if f.endswith("_edgetpu.tflite")]
+    if len(files) <= 0:
+        return "Fail"
+    target_file = os.path.join(target_dir,"model_edgetpu.tflite")
+    if os.path.exists(target_file):
+        os.remove(target_file)
+
+    shutil.copyfile(files[0], target_file)
+
+    return jsonify({"result":"OK"})
+
 @app.route("/download_server_project", methods = ["GET","POST"])
 def handle_download_server_project():
+    
+    import wget
+
     if request.method == 'GET':
         project_id = request.args.get("project_id")
         server_url = request.args.get("url")
@@ -387,7 +448,7 @@ def training_task(data, q):
                 input_conf["epochs"],
                 output_folder_path,
                 batch_size = input_conf["batch_size"],
-                augumentation = True,
+                augumentation = False if BACKEND == "EDGE" else True,
                 learning_rate = input_conf["learning_rate"], 
                 train_times = input_conf["train_times"],
                 valid_times = input_conf["valid_times"],
@@ -495,7 +556,9 @@ def handle_convert_model():
     print("555= "+data)
     res = {}
     project_id = data["project_id"]
-    project_backend = data["backend"]
+    project_backend = None
+    if "backend" in data:
+        project_backend = data["backend"]
     if not project_id:
         return "Fail"
     output_path = os.path.join(PROJECT_PATH, project_id, "output")
@@ -609,7 +672,7 @@ def client_connect():
                     break
                 else:
                     emit("training_progress",report)
-            except Queue.Empty:
+            except queue.Queue.Empty:
                 continue
             except:
                 print("Unknow Error")
