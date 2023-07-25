@@ -1,4 +1,4 @@
-numpy==1.19.5
+numpy==1.19.2
 sklearn
 pillow
 #imgaug==0.4
