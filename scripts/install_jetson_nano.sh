@@ -65,3 +65,5 @@ cd ..
 
 sudo chmod +x /home/pi/server/scripts/expand_sdcard_jetson.sh
 sudo /home/pi/server/scripts/expand_sdcard_jetson.sh
+
+sudo -H pip3 install numpy==1.19.3
