@@ -45,7 +45,7 @@ sudo -H pip3 install gdown
 gdown https://drive.google.com/uc?id=1DLk4Tjs8Mjg919NkDnYg02zEnbbCAzOz
 # install TensorFlow (± 12 min @1500 MHz)
 sudo -H pip3 install tensorflow-2.4.1-cp36-cp36m-linux_aarch64.whl
-
+sudo -H pip3 install https://github.com/google-coral/pycoral/releases/download/v2.0.0/tflite_runtime-2.5.0.post1-cp36-cp36m-linux_aarch64.whl#sha256=7c58b1a9fb2d2b24d6f0b0f8629ede7d288358e2cb93c68c3e4f78fd0ee7d1df
 sudo -H pip3 install tensorflowjs
 
 sudo -H pip3 install https://github.com/google-coral/pycoral/releases/download/v2.0.0/tflite_runtime-2.5.0.post1-cp36-cp36m-linux_aarch64.whl#sha256=7c58b1a9fb2d2b24d6f0b0f8629ede7d288358e2cb93c68c3e4f78fd0ee7d1df

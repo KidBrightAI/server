@@ -12,10 +12,15 @@ import numpy as np
 #from tensorflow.python.framework import graph_io
 import shlex
 
+import gdown
+
 k210_converter_path=os.path.join(os.path.dirname(__file__),"ncc","ncc")
+k210_converter_download_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),'ncc_linux_x86_64.tar.xz')
 k210_converter_download_path=os.path.join(os.path.dirname(os.path.abspath(__file__)),'ncc_linux_x86_64.tar.xz')
 nncase_download_url="https://github.com/kendryte/nncase/releases/download/v0.2.0-beta4/ncc_linux_x86_64.tar.xz"
 cwd = os.path.dirname(os.path.realpath(__file__))
+corgimodel_tool_path=os.path.join(os.path.dirname(__file__),"corgimodel_tool")
+corgimodel_tool_url = "https://drive.google.com/uc?id=1bHC6hmbBU4HrMQsxepJv1j8rsO6CxmHq"
 
 def run_command(cmd, cwd=None):
     with subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, executable='/bin/bash', universal_newlines=True, cwd=cwd) as p:
@@ -43,6 +48,8 @@ class Converter(object):
                 tar_file.extractall(os.path.join(os.path.dirname(__file__),"ncc"))
                 tar_file.close()
                 os.chmod(k210_converter_path, 0o775)
+                gdown.download(corgimodel_tool_url, corgimodel_tool_path, quiet=False)
+                os.chmod(corgimodel_tool_path, 0o775)
 
         if 'edgetpu' in converter_type:
             rc, out = subprocess.getstatusoutput('dpkg -l edgetpu-compiler')
@@ -91,8 +98,11 @@ class Converter(object):
         #backend = create_feature_extractor(self._backend, [self._img_size[0], self._img_size[1]])
         image_search = lambda ext : glob.glob(self._dataset_path + ext, recursive=True)
         for ext in ['/**/*.jpg', '/**/*.jpeg', '/**/*.png']: image_files_list.extend(image_search(ext))
-        temp_folder = os.path.join(os.path.dirname(__file__),'tmp')
-        os.mkdir(temp_folder)
+        temp_folder = os.path.join(os.path.dirname(__file__),'tmpx')
+        try:
+            os.mkdir(temp_folder)
+        except:
+            pass
         for filename in image_files_list[:num_imgs]:
             image = cv2.imread(filename)
             image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
@@ -116,13 +126,23 @@ class Converter(object):
     def convert_k210(self, model_path):
         folder_name = self.k210_dataset_gen()
         output_name = os.path.basename(model_path).split(".")[0]+".kmodel"
-        output_path = os.path.join(os.path.dirname(model_path),output_name)
+        output_path = os.path.join(os.path.dirname(__file__),output_name)
         print(output_path)
         cmd = '{} compile "{}" "{}" -i tflite --weights-quantize-threshold 1000 --dataset-format raw --dataset "{}"'.format(k210_converter_path, model_path, output_path, folder_name)
         print(cmd)
         result = run_command(cmd)
         shutil.rmtree(folder_name, ignore_errors=True)
         print(result)
+        
+        cmd = '{} "{}"'.format(corgimodel_tool_path,output_path)
+        print(cmd)
+        result = run_command(cmd)
+        print(result)
+        
+        encoded_output_path = os.path.join(os.path.dirname(model_path),output_name)
+        encoded_path = os.path.join("/content/server","encoded_"+output_name)
+        shutil.copyfile(encoded_path, encoded_output_path)
+        print("end")
 
     def convert_ir(self, model_path, model_layers):
         input_model = os.path.join(model_path.split(".")[0], "saved_model.pb")
