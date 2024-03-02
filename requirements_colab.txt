@@ -9,3 +9,4 @@ tensorflowjs==3.15.0
 pandas-profiling
 markupsafe==2.0.0
 keras_preprocessing
+numpy==1.23.1
