@@ -8,5 +8,4 @@ flask_cors==3.0.10
 pandas-profiling
 markupsafe==2.0.0
 keras_preprocessing
-numpy==1.23.1
 tensorflowjs
