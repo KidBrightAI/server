@@ -14,6 +14,7 @@ import base64
 import numpy as np
 np.bool = np.bool_
 np.int = np.int_
+np.float = np.float32
 import cv2
 import utils.helper as helper
 sys.path.append(".")
